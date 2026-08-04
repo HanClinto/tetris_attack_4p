@@ -45,6 +45,15 @@ The next probe implements protocol-level Super Multitap detection through `$4016
 - A Multitap on controller port 2 is detected.
 - An ordinary controller on port 2 is rejected.
 
+The manual polling probe now reads all four Multitap subports:
+
+- WRIO bit 7 high selects subports A/B.
+- WRIO bit 7 low selects subports C/D.
+- Each `$4017` read returns one serial bit for two controllers in bits 0-1.
+- The original WRIO value is restored before returning to the game.
+
+Both a deterministic bus test and an end-to-end Mesen Multitap device test verify four distinct 16-bit controller words. Raw experimental state is stored at `$7F:FE00-$7F:FE09`. An untouched-game trace found no accesses to `$7F:FE00-$7F:FE2F` during 3600 steady-state frames after startup initialization.
+
 The `multitap-auto-read` experiment routes P1 through `$421E` to investigate automatic reads from the Multitap's second data line. Its automated button-input test is currently inconclusive because Mesen 2.1.1's Lua `setInput` path does not update the SNES serial shift buffer in this headless workflow.
 
 See [`notes/rom-map.md`](notes/rom-map.md) for confirmed addresses.

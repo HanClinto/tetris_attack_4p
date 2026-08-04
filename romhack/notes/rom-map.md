@@ -39,3 +39,24 @@ The protocol-level detection probe is implemented at `$A0:8100`:
 Mesen 2.1.1 returns bit 1 set for a Multitap and clear for an ordinary controller. Headless positive and negative controls verify both outcomes.
 
 The SNES automatic-read registers `$421C-$421F` are unused by the original game. `$421E/$421F` are the candidate path for the second data line on controller port 2, but synthetic button propagation through this path is not yet verified.
+
+## Manual Multitap polling
+
+The manual polling probe at `$A0:8200`:
+
+- Preserves A/X/Y, DBR, processor flags, and WRIO.
+- Latches all controllers once through `$4016`.
+- Reads subports A/B with WRIO bit 7 high.
+- Reads subports C/D with WRIO bit 7 low.
+- Produces the same 16-bit button order used by the SNES automatic-read registers.
+- Returns to the original P1/P2 poll routine without changing game behavior.
+
+Experimental state currently uses:
+
+- `$7F:FE00`: subport A raw state
+- `$7F:FE02`: subport B raw state
+- `$7F:FE04`: subport C raw state
+- `$7F:FE06`: subport D raw state
+- `$7F:FE08`: saved WRIO byte
+
+The game initializes this page during startup. After frame 120, access-counter and exact-range traces observed no original-game reads or writes to `$7F:FE00-$7F:FE2F` over the following 3600 frames. This is sufficient for experiments but remains provisional until more game modes are traced.
