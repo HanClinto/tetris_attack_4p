@@ -26,10 +26,10 @@ make test
 
 Set `MESEN_BIN` to use a different Mesen executable.
 
-The current probe builds reproducibly with Asar 1.91:
+The current main patch builds reproducibly with Asar 1.91:
 
 - Size: 2,097,152 bytes
-- SHA-1: `5483147e8c387ddde82bf0e8e668f674d2a07ccf`
+- SHA-1: `7bbd4790bee84f1e8dc03c9626b16b344d607d46`
 
 ## Test environment
 
@@ -53,6 +53,8 @@ The manual polling probe now reads all four Multitap subports:
 - The original WRIO value is restored before returning to the game.
 
 Both a deterministic bus test and an end-to-end Mesen Multitap device test verify four distinct 16-bit controller words. Raw experimental state is stored at `$7F:FE00-$7F:FE09`. An untouched-game trace found no accesses to `$7F:FE00-$7F:FE2F` during 3600 steady-state frames after startup initialization.
+
+The main patch now also maintains P3/P4 current, newly pressed, repeated, previous, and repeat-timer state. Deterministic tests verify first press, held input, release, initial repeat delay, and repeat cadence reset against the original game constants.
 
 The `multitap-auto-read` experiment routes P1 through `$421E` to investigate automatic reads from the Multitap's second data line. Its automated button-input test is currently inconclusive because Mesen 2.1.1's Lua `setInput` path does not update the SNES serial shift buffer in this headless workflow.
 

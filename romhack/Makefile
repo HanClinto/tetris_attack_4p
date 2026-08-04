@@ -1,4 +1,4 @@
-.PHONY: all multitap-detect multitap-poll port2-control multitap-probe test clean
+.PHONY: all multitap-detect port2-control multitap-probe test clean
 
 all:
 	./build.sh
@@ -6,11 +6,6 @@ all:
 multitap-detect:
 	PATCH_FILE="$(CURDIR)/experiments/multitap-detect.asm" \
 	OUTPUT_ROM="$(CURDIR)/build/multitap-detect.sfc" \
-	./build.sh
-
-multitap-poll:
-	PATCH_FILE="$(CURDIR)/experiments/multitap-poll.asm" \
-	OUTPUT_ROM="$(CURDIR)/build/multitap-poll.sfc" \
 	./build.sh
 
 port2-control:
@@ -23,7 +18,7 @@ multitap-probe:
 	OUTPUT_ROM="$(CURDIR)/build/multitap-auto-read.sfc" \
 	./build.sh
 
-test: all multitap-detect multitap-poll
+test: all multitap-detect
 	sh tests/mesen/run.sh
 
 clean:

@@ -20,8 +20,11 @@ ControllerPollTrampoline:
     bne .waitForAutoJoy
 
     rep #$20
+    jsl PollMultitap
     jml $809C10
 
     db "TA4P-PROBE"
 
 assert pc() <= $A08040
+
+incsrc "src/multitap.asm"

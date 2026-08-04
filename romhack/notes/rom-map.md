@@ -58,5 +58,7 @@ Experimental state currently uses:
 - `$7F:FE04`: subport C raw state
 - `$7F:FE06`: subport D raw state
 - `$7F:FE08`: saved WRIO byte
+- `$7F:FE10-$7F:FE19`: P3 current/pressed/repeat/previous/timer
+- `$7F:FE20-$7F:FE29`: P4 current/pressed/repeat/previous/timer
 
 The game initializes this page during startup. After frame 120, access-counter and exact-range traces observed no original-game reads or writes to `$7F:FE00-$7F:FE2F` over the following 3600 frames. This is sufficient for experiments but remains provisional until more game modes are traced.

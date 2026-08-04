@@ -1,16 +1,18 @@
-incsrc "../patch.asm"
-
 !multitapPadA = $FE00
 !multitapPadB = $FE02
 !multitapPadC = $FE04
 !multitapPadD = $FE06
 !savedWrio = $FE08
-
-; Insert the behavior-neutral poll after the automatic joypad busy wait. The
-; normal P1/P2 input routine still runs unchanged at $80:9C10.
-org $A0800C
-    jsl PollMultitap
-    jml $809C10
+!p3Current = $FE10
+!p3Pressed = $FE12
+!p3Repeat = $FE14
+!p3Previous = $FE16
+!p3RepeatTimer = $FE18
+!p4Current = $FE20
+!p4Pressed = $FE22
+!p4Repeat = $FE24
+!p4Previous = $FE26
+!p4RepeatTimer = $FE28
 
 org $A08200
 PollMultitap:
@@ -80,10 +82,54 @@ PollMultitap:
     lda !savedWrio
     sta.l $004201
 
+    rep #$30
+    lda !multitapPadB
+    ldx #!p3Current
+    jsr ProcessInputState
+
+    lda !multitapPadC
+    ldx #!p4Current
+    jsr ProcessInputState
+
     plb
     ply
     plx
     plp
     rtl
+
+; Mirrors the current/pressed/repeat behavior at $80:9C10 for one controller.
+; Input: A = raw controller word, X = state structure address in bank $7F.
+ProcessInputState:
+    bit #$000F
+    beq .connected
+    lda #$0000
+.connected:
+    sta $0000,x
+    eor $0006,x
+    and $0000,x
+    sta $0002,x
+    sta $0004,x
+
+    lda $0000,x
+    beq .storePrevious
+    cmp $0006,x
+    bne .resetInitialDelay
+    dec $0008,x
+    bne .storePrevious
+
+    lda $0000,x
+    sta $0004,x
+    lda $B1
+    sta $0008,x
+    bra .storePrevious
+
+.resetInitialDelay:
+    lda $AF
+    sta $0008,x
+
+.storePrevious:
+    lda $0000,x
+    sta $0006,x
+    rts
 
 assert pc() <= $A08300
