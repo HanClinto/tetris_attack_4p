@@ -27,3 +27,15 @@ The routine updates direct-page words for current, newly pressed, repeated, and 
 - Rejoin point: `$80:9C10`
 - Deterministic output SHA-1 with Asar 1.91: `5483147e8c387ddde82bf0e8e668f674d2a07ccf`
 - Execution verified through the attract-mode tutorial in Mesen 2.1.1
+
+## Super Multitap
+
+The protocol-level detection probe is implemented at `$A0:8100`:
+
+1. Write `$01` to `$4016` to assert the controller strobe.
+2. Read `$4017` and retain data bit 1.
+3. Write `$00` to `$4016` to release the strobe.
+
+Mesen 2.1.1 returns bit 1 set for a Multitap and clear for an ordinary controller. Headless positive and negative controls verify both outcomes.
+
+The SNES automatic-read registers `$421C-$421F` are unused by the original game. `$421E/$421F` are the candidate path for the second data line on controller port 2, but synthetic button propagation through this path is not yet verified.

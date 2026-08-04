@@ -18,6 +18,14 @@ make
 
 The generated 2 MiB ROM is written to `romhack/build/tetris-attack-4p.sfc` and is ignored by Git.
 
+With Mesen 2.1.1 installed at the default path used below, run the headless integration tests with:
+
+```sh
+make test
+```
+
+Set `MESEN_BIN` to use a different Mesen executable.
+
 The current probe builds reproducibly with Asar 1.91:
 
 - Size: 2,097,152 bytes
@@ -31,5 +39,12 @@ The current probe builds reproducibly with Asar 1.91:
 ## Current experiment
 
 The first probe expands the ROM to 2 MiB, redirects the controller polling routine at `$80:9C04` to new code at `$A0:8000`, reproduces the overwritten instructions, and rejoins the original routine at `$80:9C10`. It is behavior-neutral and validates the expansion, hook, and Mesen workflow.
+
+The next probe implements protocol-level Super Multitap detection through `$4016/$4017`. Its headless test verifies both sides:
+
+- A Multitap on controller port 2 is detected.
+- An ordinary controller on port 2 is rejected.
+
+The `multitap-auto-read` experiment routes P1 through `$421E` to investigate automatic reads from the Multitap's second data line. Its automated button-input test is currently inconclusive because Mesen 2.1.1's Lua `setInput` path does not update the SNES serial shift buffer in this headless workflow.
 
 See [`notes/rom-map.md`](notes/rom-map.md) for confirmed addresses.

@@ -5,6 +5,7 @@ script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 source_rom=${SOURCE_ROM:-"$script_dir/../resources/Tetris Attack (USA) (En,Ja).sfc"}
 build_dir=${BUILD_DIR:-"$script_dir/build"}
 output_rom=${OUTPUT_ROM:-"$build_dir/tetris-attack-4p.sfc"}
+patch_file=${PATCH_FILE:-"$script_dir/patch.asm"}
 expected_sha1=2dc56eab3e70c0910ae47119d8b69f494e6000df
 
 if ! command -v asar >/dev/null 2>&1; then
@@ -26,7 +27,7 @@ fi
 mkdir -p "$build_dir"
 cp "$source_rom" "$output_rom"
 dd if=/dev/zero bs=1048576 count=1 >> "$output_rom" 2>/dev/null
-asar --fix-checksum=on "$script_dir/patch.asm" "$output_rom"
+asar --fix-checksum=on "$patch_file" "$output_rom"
 
 output_size=$(wc -c < "$output_rom" | tr -d ' ')
 if [ "$output_size" != "2097152" ]; then
