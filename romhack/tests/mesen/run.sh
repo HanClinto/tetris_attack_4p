@@ -71,4 +71,8 @@ fi
     "$script_dir/static_four_wells.lua" \
     "$four_wells_rom" >"$romhack_dir/build/mesen-four-wells.log" 2>&1
 
-printf 'Mesen input, WRAM, and four-well renderer tests passed\n'
+"$mesen_bin" $common_args --timeout=30 \
+    "$script_dir/dynamic_four_wells.lua" \
+    "$four_wells_rom" >"$romhack_dir/build/mesen-dynamic-wells.log" 2>&1
+
+printf 'Mesen input, WRAM, and dynamic four-well renderer tests passed\n'

@@ -61,7 +61,7 @@ Experimental state currently uses:
 - `$7F:FE10-$7F:FE19`: P3 current/pressed/repeat/previous/timer
 - `$7F:FE20-$7F:FE29`: P4 current/pressed/repeat/previous/timer
 
-The game initializes this page during startup. After frame 120, access-counter and exact-range traces observed no original-game reads or writes to `$7F:FE00-$7F:FE2F` over the following 3600 frames. This is sufficient for experiments but remains provisional until more game modes are traced.
+The game initializes this page during startup. After frame 120, access-counter and exact-range traces observed no original-game reads or writes to `$7F:FE00-$7F:FE3F` over the following 3600 frames. This is sufficient for experiments but remains provisional until more game modes are traced.
 
 ## Mode 2 board renderer
 
@@ -78,5 +78,15 @@ The tutorial enters its Mode 2 setup at `$89:E43E`; the register-shadow tuple be
 In Mode 2, BG3's vertical-offset row begins at VRAM word `$6020`. For BG2, bit `$4000` enables the per-column vertical offset and bits 0-9 contain the scroll value.
 
 The static four-well experiment uses BG2 columns 1-6, 9-14, 17-22, and 25-30. It writes offset groups `$4000`, `$4008`, `$4010`, and `$4018` for an independent-scrolling proof.
+
+Dynamic experiment state:
+
+- `$7F:FE30`: well 1 vertical offset
+- `$7F:FE32`: well 2 vertical offset
+- `$7F:FE34`: well 3 vertical offset
+- `$7F:FE36`: well 4 vertical offset
+- `$7F:FE3E`: Mode 2 layout initialization flag
+
+Each offset is masked to 10 bits. Raw Up (`$0800`) decrements it and raw Down (`$0400`) increments it. Tests verify independent wrap/decrement/increment behavior and the corresponding BG3 words.
 
 Rendering from the controller hook is too late in VBlank. The successful experiment hooks the original `JSL $80:90F3` calls at `$80:8E4D` and `$80:8E7B`, calls the original routine, then performs experimental VRAM writes. Both NMI branches are required.
