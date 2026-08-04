@@ -1,4 +1,4 @@
-.PHONY: all multitap-detect port2-control multitap-probe test clean
+.PHONY: all multitap-detect port2-control multitap-probe render-layer-probe static-four-wells test clean
 
 all:
 	./build.sh
@@ -18,7 +18,17 @@ multitap-probe:
 	OUTPUT_ROM="$(CURDIR)/build/multitap-auto-read.sfc" \
 	./build.sh
 
-test: all multitap-detect
+render-layer-probe:
+	PATCH_FILE="$(CURDIR)/experiments/render-layer-probe.asm" \
+	OUTPUT_ROM="$(CURDIR)/build/render-layer-probe.sfc" \
+	./build.sh
+
+static-four-wells:
+	PATCH_FILE="$(CURDIR)/experiments/static-four-wells.asm" \
+	OUTPUT_ROM="$(CURDIR)/build/static-four-wells.sfc" \
+	./build.sh
+
+test: all multitap-detect static-four-wells
 	sh tests/mesen/run.sh
 
 clean:

@@ -56,6 +56,20 @@ Both a deterministic bus test and an end-to-end Mesen Multitap device test verif
 
 The main patch now also maintains P3/P4 current, newly pressed, repeated, previous, and repeat-timer state. Deterministic tests verify first press, held input, release, initial repeat delay, and repeat cadence reset against the original game constants.
 
+## Rendering research
+
+The `static-four-wells` experiment proves the proposed horizontal layout on the SNES renderer:
+
+- Four 6x12 wells consume 24 of the 32 tile columns.
+- Two-column gaps separate the wells.
+- BG2 carries the decorative background and experimental well fields.
+- BG3 supplies Mode 2 offset-per-tile data.
+- Four six-column groups use independent vertical offsets of 0, 8, 16, and 24 pixels.
+
+The renderer must run earlier than controller polling. A late controller-hook experiment reached the end of VBlank after only 20 offset words. Hooking both active NMI branches immediately after the existing `$80:90F3` call provides enough time for all 288 well entries and 32 offset words. The experiment preserves the displaced call and is not part of the production patch.
+
+`make test` verifies the four-well geometry and offset table directly in Mesen VRAM. Generated screenshots and ROMs remain ignored by Git.
+
 The `multitap-auto-read` experiment routes P1 through `$421E` to investigate automatic reads from the Multitap's second data line. Its automated button-input test is currently inconclusive because Mesen 2.1.1's Lua `setInput` path does not update the SNES serial shift buffer in this headless workflow.
 
 See [`notes/rom-map.md`](notes/rom-map.md) for confirmed addresses.

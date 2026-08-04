@@ -62,3 +62,21 @@ Experimental state currently uses:
 - `$7F:FE20-$7F:FE29`: P4 current/pressed/repeat/previous/timer
 
 The game initializes this page during startup. After frame 120, access-counter and exact-range traces observed no original-game reads or writes to `$7F:FE00-$7F:FE2F` over the following 3600 frames. This is sufficient for experiments but remains provisional until more game modes are traced.
+
+## Mode 2 board renderer
+
+The tutorial enters its Mode 2 setup at `$89:E43E`; the register-shadow tuple begins at `$89:E444`:
+
+- `$7E:01BA = $02`: BGMODE 2
+- `$7E:01BC = $72`: BG1 tilemap at VRAM word `$7000`, 64x32
+- `$7E:01BD = $78`: BG2 tilemap at VRAM word `$7800`, 32x32
+- `$7E:01BE = $60`: BG3 offset map at VRAM word `$6000`, 32x32
+- BG1/BG2 character data begins at VRAM word `$2000`
+
+`$80:9B20` copies the PPU shadow block to hardware registers. `$80:9E14-$80:9E20` configures VRAM transfers.
+
+In Mode 2, BG3's vertical-offset row begins at VRAM word `$6020`. For BG2, bit `$4000` enables the per-column vertical offset and bits 0-9 contain the scroll value.
+
+The static four-well experiment uses BG2 columns 1-6, 9-14, 17-22, and 25-30. It writes offset groups `$4000`, `$4008`, `$4010`, and `$4018` for an independent-scrolling proof.
+
+Rendering from the controller hook is too late in VBlank. The successful experiment hooks the original `JSL $80:90F3` calls at `$80:8E4D` and `$80:8E7B`, calls the original routine, then performs experimental VRAM writes. Both NMI branches are required.

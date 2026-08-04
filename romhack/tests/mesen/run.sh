@@ -6,6 +6,7 @@ romhack_dir=$(CDPATH= cd -- "$script_dir/../.." && pwd)
 mesen_bin=${MESEN_BIN:-"$HOME/Applications/Mesen.app/Contents/MacOS/Mesen"}
 probe_rom="$romhack_dir/build/multitap-detect.sfc"
 poll_rom="$romhack_dir/build/tetris-attack-4p.sfc"
+four_wells_rom="$romhack_dir/build/static-four-wells.sfc"
 source_rom="$romhack_dir/../resources/Tetris Attack (USA) (En,Ja).sfc"
 lua_test="$script_dir/multitap_detect.lua"
 
@@ -66,4 +67,8 @@ fi
     "$source_rom" \
     >"$romhack_dir/build/mesen-wram.log" 2>&1
 
-printf 'Mesen Multitap detection, polling, input-state, and WRAM tests passed\n'
+"$mesen_bin" $common_args --timeout=20 \
+    "$script_dir/static_four_wells.lua" \
+    "$four_wells_rom" >"$romhack_dir/build/mesen-four-wells.log" 2>&1
+
+printf 'Mesen input, WRAM, and four-well renderer tests passed\n'
