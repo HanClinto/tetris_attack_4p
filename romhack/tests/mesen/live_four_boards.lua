@@ -229,7 +229,9 @@ emu.addEventCallback(function()
     setMenuInput()
 
     if frame == 4700 then
-        emu.write(0x12000, 0xA5, emu.memType.snesWorkRam)
+        if emu.read(0x12000, emu.memType.snesWorkRam) ~= 0xA5 then
+            emu.stop(13)
+        end
     elseif frame == 4708 then
         emu.write(0x12000, 0x00, emu.memType.snesWorkRam)
     elseif frame == 4710 then

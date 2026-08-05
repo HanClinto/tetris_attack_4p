@@ -1,5 +1,8 @@
 incsrc "context-dispatch-probe.asm"
 
+org $829D93
+    jsl AutoArmP1DispatchPreHook
+
 org $808E4D
     jsl LiveFourBoardHook
 
@@ -647,3 +650,36 @@ PanelTiles:
     incbin "../build/panel-tiles.4bpp"
 
 assert pc() == $A09660
+
+org $A19600
+AutoArmP1DispatchPreHook:
+    php
+    sep #$20
+    lda.l $7F200B
+    cmp #$5A
+    beq .armed
+    lda.l $7E01BA
+    cmp #$02
+    bne .armed
+
+    lda #$00
+    sta.l $7F2001
+    sta.l $7F2002
+    sta.l $7F2004
+    sta.l $7F2005
+    sta.l $7F2006
+    sta.l $7F2007
+    sta.l $7F2008
+    sta.l $7F2009
+    sta.l $7F200A
+    lda #$5A
+    sta.l $7F200B
+    lda #$A5
+    sta.l $7F2000
+
+.armed:
+    plp
+    jsl P1DispatchPreHook
+    rtl
+
+assert pc() <= $A19680

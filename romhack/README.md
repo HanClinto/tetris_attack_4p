@@ -44,7 +44,8 @@ Visual milestones are captured from Mesen and checked in under `docs/progress/` 
 | Live four-board rendering | Prototype complete | Compact JSON-derived tiles render P1-P4 native/backing panel data |
 | Player frames, cursors, and labels | Prototype complete | Thin four-well borders, independent two-cell outlines, and P1-P4 labels |
 | Compact status HUD | Prototype complete | Rotating green `OK` and red `!!` danger indicators for all four boards |
-| Four-player menu entry | Not started | Add and capture an interactive route into the four-player mode |
+| Temporary four-player launch | Prototype complete | Enter normal 2P VS; active match startup auto-arms P1-P4 scheduling |
+| Dedicated four-player menu entry | Not started | Add and capture an explicit interactive 4P option |
 
 ![Four-well Mode 2 layout proof](docs/progress/four-well-layout.png)
 
@@ -53,6 +54,8 @@ The current visual proof deliberately uses flat placeholder tiles. It validates 
 ![Live P1-P4 compact panel rendering](docs/progress/live-four-boards.png)
 
 The live renderer uploads the JSON-compiled 8x8 tiles and maps all 288 cells from P1/P2 native state plus P3/P4 backing contexts. It includes thin player frames, independent two-cell cursor outlines, compact labels, and top-row danger indicators. It currently refreshes two rows per NMI, completing all four boards every six frames with reliable active-versus VBlank margin. Frame tiles are initialized eight words at a time, while one player's status indicator is refreshed early each NMI.
+
+For the current playable prototype, configure a Super Multitap in controller port 2 and enter the original `2PLAYER GAME` -> `VS.` path. The first active P1 update initializes and arms the balanced four-player scheduler once for that match. A dedicated menu label and setup flow are still pending.
 
 The first compact panel-art export is also available as editable source material:
 

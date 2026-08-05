@@ -45,9 +45,7 @@ emu.addEventCallback(function()
     frame = frame + 1
     setMenuInput()
 
-    if frame == 4700 then
-        emu.write(0x12000, 0xA5, emu.memType.snesWorkRam)
-    elseif frame == 4720 then
+    if frame == 4720 then
         captureReady = true
     end
 end, emu.eventType.startFrame)

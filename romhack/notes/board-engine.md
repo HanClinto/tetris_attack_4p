@@ -133,3 +133,5 @@ P3 planes/scalars use `$7F:0800/$0C00`; P4 uses `$7F:1000/$1400`. Native P1/P2 p
 The strengthened test injects A presses for both extra players and verifies two independent updates apiece. During each virtual phase, native slot 2 contains the selected player's planes, scalar sidecar, and processed input. The original update slice changes that virtual board, saves it back to the correct P3/P4 context, and restores every captured P2 plane, scalar, and input byte. This establishes repeated P3/P4 board execution through the native engine.
 
 All four players now receive one board update every two native match ticks. `balanced_context_dispatch_probe.lua` verifies both dispatcher return paths, equal virtual completion counts, intervening native updates, independent save-back, and byte-exact restoration of each native slot.
+
+The live renderer experiment wraps the active P1 pre-hook with a one-time auto-arm routine. It clears scheduler state, sets `$7F:2000=$A5`, and latches `$7F:200B=$5A` so the original 2P VS path launches the four-player prototype without Lua writes. Match setup clears high WRAM before the next launch.
