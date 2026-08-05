@@ -136,3 +136,5 @@ The `multitap-auto-read` experiment routes P1 through `$421E` to investigate aut
 
 See [`notes/rom-map.md`](notes/rom-map.md) for confirmed addresses.
 See [`notes/board-engine.md`](notes/board-engine.md) for the two-player context layout and four-player execution strategy.
+See [`notes/four-player-rules.md`](notes/four-player-rules.md) for the GameCube-inspired targeting, garbage, and elimination rules.
+See [`notes/native-garbage-queue.md`](notes/native-garbage-queue.md) for the verified native combo-garbage queue and slab format.

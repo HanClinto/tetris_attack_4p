@@ -123,4 +123,8 @@ fi
     "$script_dir/context_backing_guard.lua" \
     "$poll_rom" >"$romhack_dir/build/mesen-context-backing.log" 2>&1
 
+"$mesen_bin" $common_args --timeout=55 \
+    "$script_dir/native_garbage_queue.lua" \
+    "$poll_rom" >"$romhack_dir/build/mesen-native-garbage.log" 2>&1
+
 printf 'Mesen input, WRAM, renderer, and context-swap tests passed\n'
