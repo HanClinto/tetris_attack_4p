@@ -41,11 +41,8 @@ RenderFourWells:
     rep #$20
     lda #$0000
     sta $FE30
-    lda #$0008
     sta $FE32
-    lda #$0010
     sta $FE34
-    lda #$0018
     sta $FE36
 
 .initialized:

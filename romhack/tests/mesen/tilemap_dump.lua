@@ -17,6 +17,12 @@ emu.addEventCallback(function()
     end
     dump:close()
 
+    dump = assert(io.open(outputFolder .. "/cgram.bin", "wb"))
+    for address = 0x0000, 0x01FF do
+        dump:write(string.char(emu.read(address, emu.memType.snesCgRam)))
+    end
+    dump:close()
+
     local screenshot = assert(io.open(outputFolder .. "/frame-3600.png", "wb"))
     screenshot:write(emu.takeScreenshot())
     screenshot:close()

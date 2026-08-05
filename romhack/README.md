@@ -48,6 +48,20 @@ Visual milestones are captured from Mesen and checked in under `docs/progress/` 
 
 The current visual proof deliberately uses flat placeholder tiles. It validates geometry, independent scrolling, and VBlank timing before new panel art is introduced.
 
+The first compact panel-art export is also available as editable source material:
+
+![Original 16x16 panel metatiles](assets/panels/panel-source-16x16-preview.png)
+
+![Naively downscaled 8x8 starter panels](assets/panels/panel-starter-8x8-preview.png)
+
+The sheet order is heart, circle, triangle, star, and diamond. `assets/panels/` contains individual transparent PNGs at both sizes, exact-size contact sheets, and `panels.json` with palette RGB values plus ASCII hexadecimal pixel rows.
+
+Regenerate the assets from a Mesen VRAM/CGRAM dump with:
+
+```sh
+ruby tools/export_panel_tiles.rb /path/to/vram.bin /path/to/cgram.bin assets/panels
+```
+
 ### Panel scale
 
 The original panels appear as 16x16-pixel metatiles, which limits a six-column well to 96 pixels. Four such wells would require 384 pixels before borders, so the original scale cannot fit horizontally on a 256-pixel SNES screen.
@@ -94,7 +108,7 @@ The `static-four-wells` experiment proves the proposed horizontal layout on the 
 - Two-column gaps separate the wells.
 - BG2 carries the decorative background and experimental well fields.
 - BG3 supplies Mode 2 offset-per-tile data.
-- Four six-column groups use independent vertical offsets of 0, 8, 16, and 24 pixels.
+- Four six-column groups share a level zero-offset baseline and can then scroll independently.
 
 The experiment is now stateful. Each raw Multitap word controls one well's vertical offset: Up decrements and Down increments its 10-bit scroll value. A headless test independently drives all four controller words and verifies both the WRAM state and resulting BG3 offset groups.
 

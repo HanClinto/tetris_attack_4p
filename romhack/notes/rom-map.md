@@ -77,7 +77,19 @@ The tutorial enters its Mode 2 setup at `$89:E43E`; the register-shadow tuple be
 
 In Mode 2, BG3's vertical-offset row begins at VRAM word `$6020`. For BG2, bit `$4000` enables the per-column vertical offset and bits 0-9 contain the scroll value.
 
-The static four-well experiment uses BG2 columns 1-6, 9-14, 17-22, and 25-30. It writes offset groups `$4000`, `$4008`, `$4010`, and `$4018` for an independent-scrolling proof.
+The static four-well experiment uses BG2 columns 1-6, 9-14, 17-22, and 25-30. All four groups start at offset word `$4000`; independent Up/Down input then changes each group's 10-bit offset separately.
+
+## Panel graphics extraction
+
+At tutorial frame 3600, the visible 16x16 panel metatiles are four 8x8 SNES 4bpp tiles each, relative to character-data byte base `$4000`:
+
+- Heart: tiles `$0A0-$0A3`, palette 1
+- Circle: tiles `$0A4-$0A7`, palette 1
+- Triangle: tiles `$0A8-$0AB`, palette 1
+- Star: tiles `$0AC-$0AF`, palette 1
+- Diamond: tiles `$0B0-$0B3`, palette 2
+
+`tests/mesen/tilemap_dump.lua` captures VRAM and CGRAM. `tools/export_panel_tiles.rb` assembles the metatiles and produces palette-index JSON plus naive 8x8 PNG starters under `assets/panels/`.
 
 Dynamic experiment state:
 
