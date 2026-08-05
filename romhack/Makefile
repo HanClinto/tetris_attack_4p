@@ -1,6 +1,11 @@
-.PHONY: all multitap-detect port2-control multitap-probe render-layer-probe static-four-wells test clean
+.PHONY: all context-swap-probe multitap-detect port2-control multitap-probe render-layer-probe static-four-wells test clean
 
 all:
+	./build.sh
+
+context-swap-probe:
+	PATCH_FILE="$(CURDIR)/experiments/context-swap-probe.asm" \
+	OUTPUT_ROM="$(CURDIR)/build/context-swap-probe.sfc" \
 	./build.sh
 
 multitap-detect:
@@ -28,7 +33,7 @@ static-four-wells:
 	OUTPUT_ROM="$(CURDIR)/build/static-four-wells.sfc" \
 	./build.sh
 
-test: all multitap-detect static-four-wells
+test: all context-swap-probe multitap-detect static-four-wells
 	sh tests/mesen/run.sh
 
 clean:

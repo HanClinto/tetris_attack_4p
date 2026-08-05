@@ -80,3 +80,26 @@ Use the two native player slots as execution slots and keep P3/P4 contexts in ba
 5. Restore P1/P2 before original rendering and unrelated game logic continue.
 
 The remaining research task is to enumerate all per-player state outside the four cell planes and locate the smallest outer update dispatcher that processes one native context.
+
+## Context backing proof
+
+High WRAM `$7F:0000-$2FFF` is bulk-cleared during mode transitions but is untouched during active versus gameplay. Backing contexts must therefore be initialized after match setup.
+
+The `context-swap-probe` experiment uses:
+
+- P1 backing: `$7F:0000-$03FF`
+- P2 backing: `$7F:0400-$07FF`
+- P3 backing: `$7F:0800-$0BFF`
+- P4 backing: `$7F:0C00-$0FFF`
+
+Each `$0400` context stores four `$0100` plane slices. The experiment:
+
+1. Saves native P1/P2 into backing storage.
+2. Fills P3/P4 backing with distinct marker bytes.
+3. Loads P3/P4 into native slots.
+4. Saves them back out.
+5. Restores native P1/P2.
+
+A byte-exact Mesen test verifies all eight native plane/player slices, both native backups, and both extra-player marker contexts.
+
+The exhaustive CPU loop is not production-ready. It copies 8 KiB in one invocation and lasts long enough for a nested NMI to re-enter the controller hook. The isolated probe disables further NMIs and exits immediately after validation. Production context swapping must use DMA/block moves, copy only needed slices, run outside NMI, or process extra players across alternating frames.
