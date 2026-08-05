@@ -102,4 +102,12 @@ Each `$0400` context stores four `$0100` plane slices. The experiment:
 
 A byte-exact Mesen test verifies all eight native plane/player slices, both native backups, and both extra-player marker contexts.
 
-The exhaustive CPU loop is not production-ready. It copies 8 KiB in one invocation and lasts long enough for a nested NMI to re-enter the controller hook. The isolated probe disables further NMIs and exits immediately after validation. Production context swapping must use DMA/block moves, copy only needed slices, run outside NMI, or process extra players across alternating frames.
+The exhaustive CPU loop is not production-ready. It copies 8 KiB in one invocation and lasts long enough for a nested NMI to re-enter the controller hook. The isolated probe disables further NMIs and exits immediately after validation.
+
+### Block-move timing proof
+
+`experiments/context-block-move-probe.asm` replaces the byte loops with one 65816 `MVN` per `$0100` plane slice. It performs the same 8 KiB save/load/save/restore transaction without disabling NMI. The byte-exact Mesen assertion passes, and `context_block_move_timing.lua` confirms the transaction crosses no more than one frame boundary.
+
+Direct DMA through the WRAM data port (`$2180`) is not usable for this transfer: a WRAM-bank source and the WRAM I/O destination contend for the same bus, and an isolated probe copied `$00` instead of the native byte. The original ROM also declares no cartridge SRAM (`$7FD8 = $00`), so adding SRAM merely as a DMA staging area would impose a new cartridge requirement. `MVN` is therefore the current production candidate.
+
+The 8 KiB proof is still not atomic: an NMI can occur while extra-player data occupies the native slots. A production update should reduce the critical section to one 4 KiB slot transaction (save native, load extra, update extra, save extra, restore native) and likely alternate P3/P4 across frames. That keeps unrelated NMI work from observing both temporary contexts at once and leaves more frame time for the original board update routine.

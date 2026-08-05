@@ -1,6 +1,11 @@
-.PHONY: all context-swap-probe multitap-detect port2-control multitap-probe render-layer-probe static-four-wells test clean
+.PHONY: all context-block-move-probe context-swap-probe multitap-detect port2-control multitap-probe render-layer-probe static-four-wells test clean
 
 all:
+	./build.sh
+
+context-block-move-probe:
+	PATCH_FILE="$(CURDIR)/experiments/context-block-move-probe.asm" \
+	OUTPUT_ROM="$(CURDIR)/build/context-block-move-probe.sfc" \
 	./build.sh
 
 context-swap-probe:
@@ -33,7 +38,7 @@ static-four-wells:
 	OUTPUT_ROM="$(CURDIR)/build/static-four-wells.sfc" \
 	./build.sh
 
-test: all context-swap-probe multitap-detect static-four-wells
+test: all context-block-move-probe context-swap-probe multitap-detect static-four-wells
 	sh tests/mesen/run.sh
 
 clean:

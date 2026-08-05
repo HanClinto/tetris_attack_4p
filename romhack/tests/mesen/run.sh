@@ -7,6 +7,7 @@ mesen_bin=${MESEN_BIN:-"$HOME/Applications/Mesen.app/Contents/MacOS/Mesen"}
 probe_rom="$romhack_dir/build/multitap-detect.sfc"
 poll_rom="$romhack_dir/build/tetris-attack-4p.sfc"
 four_wells_rom="$romhack_dir/build/static-four-wells.sfc"
+context_block_move_rom="$romhack_dir/build/context-block-move-probe.sfc"
 context_swap_rom="$romhack_dir/build/context-swap-probe.sfc"
 source_rom="$romhack_dir/../resources/Tetris Attack (USA) (En,Ja).sfc"
 lua_test="$script_dir/multitap_detect.lua"
@@ -79,6 +80,16 @@ fi
 "$mesen_bin" $common_args --timeout=30 \
     "$script_dir/context_swap_probe.lua" \
     "$context_swap_rom" >"$romhack_dir/build/mesen-context-swap.log" 2>&1
+
+"$mesen_bin" $common_args --timeout=30 \
+    "$script_dir/context_swap_probe.lua" \
+    "$context_block_move_rom" \
+    >"$romhack_dir/build/mesen-context-block-move.log" 2>&1
+
+"$mesen_bin" $common_args --timeout=30 \
+    "$script_dir/context_block_move_timing.lua" \
+    "$context_block_move_rom" \
+    >"$romhack_dir/build/mesen-context-block-move-timing.log" 2>&1
 
 "$mesen_bin" $common_args --timeout=45 \
     "$script_dir/context_backing_guard.lua" \
