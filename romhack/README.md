@@ -29,7 +29,7 @@ Set `MESEN_BIN` to use a different Mesen executable.
 The current main patch builds reproducibly with Asar 1.91:
 
 - Size: 2,097,152 bytes
-- SHA-1: `7bbd4790bee84f1e8dc03c9626b16b344d607d46`
+- SHA-1: `ba244c3d6d8ffc2ad585ee1c28db97b598c1f651`
 
 ## Progress
 
@@ -38,6 +38,7 @@ Visual milestones are captured from Mesen and checked in under `docs/progress/` 
 | Milestone | Status | Visual result |
 | --- | --- | --- |
 | Four-controller input | Complete | Four independent Multitap words plus processed P3/P4 input state |
+| Live P3/P4 Multitap control | Complete | Real subports B/C move independent virtual cursors and highlights |
 | Four-well Mode 2 layout | Complete | Four 6x12 placeholder fields fit across one 256-pixel screen |
 | Independent well scrolling | Complete | Each controller drives one Mode 2 vertical offset |
 | Balanced P1-P4 board execution | Complete | P1/P3 and P2/P4 alternate through both native slots at equal half-rate |
@@ -113,7 +114,7 @@ The manual polling probe now reads all four Multitap subports:
 
 Both a deterministic bus test and an end-to-end Mesen Multitap device test verify four distinct 16-bit controller words. Raw experimental state is stored at `$7F:FE00-$7F:FE09`. An untouched-game trace found no accesses to `$7F:FE00-$7F:FE2F` during 3600 steady-state frames after startup initialization.
 
-The main patch now also maintains P3/P4 current, newly pressed, repeated, previous, and repeat-timer state. Deterministic tests verify first press, held input, release, initial repeat delay, and repeat cadence reset against the original game constants.
+The main patch now also maintains P3/P4 current, newly pressed, repeated, previous, and repeat-timer state. Pressed/repeat edges are latched until each half-rate virtual update consumes them, preventing phase-dependent input loss. Deterministic tests verify first press, held input, release, initial repeat delay, repeat cadence, latch clearing, and simultaneous live P3/P4 cursor movement through Mesen's actual Multitap device path.
 
 ## Rendering research
 

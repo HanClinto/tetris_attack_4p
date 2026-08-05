@@ -9,6 +9,7 @@ local nativeEntries = { [1] = 0, [2] = 0 }
 local virtualBefore = {}
 local virtualAfter = {}
 local virtualScalarAfter = {}
+local expectedVirtualInput = {}
 
 local planeBases = { 0x0D7C, 0x0F7C, 0x117C, 0x137C }
 local configs = {
@@ -24,7 +25,7 @@ local configs = {
         scalarBacking = 0x10C00,
         nativeScalarBacking = 0x10D80,
         inputBacking = 0x10D50,
-        virtualInput = { 0x1FE10, 0x1FE12, 0x1FE14, 0x1FE16, 0x1FE18 },
+        virtualInput = { 0x1FE10, 0x1FE1A, 0x1FE1C, 0x1FE16, 0x1FE18 },
         scalarAddresses = {
             0x03EE, 0x0400, 0x0424, 0x0428, 0x042C,
             0x0440, 0x0444, 0x0448, 0x044C, 0x0450,
@@ -46,7 +47,7 @@ local configs = {
         scalarBacking = 0x11400,
         nativeScalarBacking = 0x10D00,
         inputBacking = 0x10D40,
-        virtualInput = { 0x1FE20, 0x1FE22, 0x1FE24, 0x1FE26, 0x1FE28 },
+        virtualInput = { 0x1FE20, 0x1FE2A, 0x1FE2C, 0x1FE26, 0x1FE28 },
         scalarAddresses = {
             0x03F0, 0x0402, 0x0426, 0x042A, 0x042E,
             0x0442, 0x0446, 0x044A, 0x044E, 0x0452,
@@ -85,6 +86,10 @@ local function captureNativeSlot(slot)
         end
     end
     return bytes
+end
+
+local function readWord(address)
+    return emu.read16(address, emu.memType.snesWorkRam)
 end
 
 local function captureBytes(startAddress, length)
@@ -162,6 +167,7 @@ local function prepareVirtual(player)
         scalar = captureWords(config.scalarAddresses),
         input = captureWords(config.inputAddresses),
     }
+    expectedVirtualInput[player] = captureWords(config.virtualInput)
 end
 
 for player, config in pairs(configs) do
@@ -235,8 +241,14 @@ emu.addMemoryCallback(function()
                 emu.stop(2)
             elseif not verifyBytes(captureWords(config.scalarAddresses), captureBytes(config.scalarBacking, #config.scalarAddresses * 2)) then
                 emu.stop(8)
-            elseif not verifyBytes(captureWords(config.inputAddresses), captureWords(config.virtualInput)) then
+            elseif not verifyBytes(
+                captureWords(config.inputAddresses),
+                expectedVirtualInput[player]
+            ) then
                 emu.stop(9)
+            elseif readWord(config.virtualInput[2]) ~= 0 or
+                readWord(config.virtualInput[3]) ~= 0 then
+                emu.stop(17)
             end
             virtualBefore[player] = captureNativeSlot(config.slot)
             return

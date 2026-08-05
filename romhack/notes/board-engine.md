@@ -134,4 +134,6 @@ The strengthened test injects A presses for both extra players and verifies two 
 
 All four players now receive one board update every two native match ticks. `balanced_context_dispatch_probe.lua` verifies both dispatcher return paths, equal virtual completion counts, intervening native updates, independent save-back, and byte-exact restoration of each native slot.
 
+Because virtual updates run at half-rate, one-frame pressed/repeat edges can occur on the intervening native phase. The Multitap driver OR-latches P3/P4 pressed and repeat words at `$7F:FE1A/$FE1C` and `$FE2A/$FE2C`; each virtual load consumes and clears its pair. `live_multitap_controls.lua` drives real Mesen subports B/C simultaneously and verifies independent P3 Right and P4 Down movement plus relocated highlights.
+
 The live renderer experiment wraps the active P1 pre-hook with a one-time auto-arm routine. It clears scheduler state, sets `$7F:2000=$A5`, and latches `$7F:200B=$5A` so the original 2P VS path launches the four-player prototype without Lua writes. Match setup clears high WRAM before the next launch.

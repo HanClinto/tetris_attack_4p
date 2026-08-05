@@ -8,11 +8,16 @@
 !p3Repeat = $FE14
 !p3Previous = $FE16
 !p3RepeatTimer = $FE18
+!p3LatchedPressed = $FE1A
+!p3LatchedRepeat = $FE1C
 !p4Current = $FE20
 !p4Pressed = $FE22
 !p4Repeat = $FE24
 !p4Previous = $FE26
 !p4RepeatTimer = $FE28
+!p4LatchedPressed = $FE2A
+!p4LatchedRepeat = $FE2C
+!inputLatchInitialized = $FE2E
 
 org $A08200
 PollMultitap:
@@ -26,6 +31,19 @@ PollMultitap:
     lda #$7F
     pha
     plb
+
+    lda !inputLatchInitialized
+    bne .latchesInitialized
+    inc !inputLatchInitialized
+    stz !p3LatchedPressed
+    stz !p3LatchedPressed+1
+    stz !p3LatchedRepeat
+    stz !p3LatchedRepeat+1
+    stz !p4LatchedPressed
+    stz !p4LatchedPressed+1
+    stz !p4LatchedRepeat
+    stz !p4LatchedRepeat+1
+.latchesInitialized:
 
     stz !multitapPadA
     stz !multitapPadA+1
@@ -86,10 +104,22 @@ PollMultitap:
     lda !multitapPadB
     ldx #!p3Current
     jsr ProcessInputState
+    lda !p3Pressed
+    ora !p3LatchedPressed
+    sta !p3LatchedPressed
+    lda !p3Repeat
+    ora !p3LatchedRepeat
+    sta !p3LatchedRepeat
 
     lda !multitapPadC
     ldx #!p4Current
     jsr ProcessInputState
+    lda !p4Pressed
+    ora !p4LatchedPressed
+    sta !p4LatchedPressed
+    lda !p4Repeat
+    ora !p4LatchedRepeat
+    sta !p4LatchedRepeat
 
     plb
     ply
@@ -132,4 +162,4 @@ ProcessInputState:
     sta $0006,x
     rts
 
-assert pc() <= $A08300
+assert pc() <= $A08400

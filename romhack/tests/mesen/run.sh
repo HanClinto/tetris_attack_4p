@@ -108,6 +108,17 @@ fi
     "$live_four_boards_rom" \
     >"$romhack_dir/build/mesen-four-player-menu.log" 2>&1
 
+# shellcheck disable=SC2086
+"$mesen_bin" $common_args --timeout=55 \
+    --snes.port2.type=Multitap \
+    --snes.port2A.type=SnesController \
+    --snes.port2B.type=SnesController \
+    --snes.port2C.type=SnesController \
+    --snes.port2D.type=SnesController \
+    "$script_dir/live_multitap_controls.lua" \
+    "$live_four_boards_rom" \
+    >"$romhack_dir/build/mesen-live-multitap-controls.log" 2>&1
+
 "$mesen_bin" $common_args --timeout=45 \
     "$script_dir/context_backing_guard.lua" \
     "$poll_rom" >"$romhack_dir/build/mesen-context-backing.log" 2>&1

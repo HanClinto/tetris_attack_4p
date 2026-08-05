@@ -363,14 +363,17 @@ SaveP2InputState:
 LoadVirtualInputState:
     lda.l $7F0000,x
     sta.l $7E00B5
-    lda.l $7F0002,x
+    lda.l $7F000A,x
     sta.l $7E00B9
-    lda.l $7F0004,x
+    lda.l $7F000C,x
     sta.l $7E00BD
     lda.l $7F0006,x
     sta.l $7E00C7
     lda.l $7F0008,x
     sta.l $7E00CD
+    lda #$0000
+    sta.l $7F000A,x
+    sta.l $7F000C,x
     rts
 
 RestoreP2InputState:
@@ -576,14 +579,17 @@ SaveP1InputState:
 LoadVirtualInputP1:
     lda.l $7F0000,x
     sta.l $7E00B3
-    lda.l $7F0002,x
+    lda.l $7F000A,x
     sta.l $7E00B7
-    lda.l $7F0004,x
+    lda.l $7F000C,x
     sta.l $7E00BB
     lda.l $7F0006,x
     sta.l $7E00BF
     lda.l $7F0008,x
     sta.l $7E00C5
+    lda #$0000
+    sta.l $7F000A,x
+    sta.l $7F000C,x
     rtl
 
 RestoreP1InputState:
