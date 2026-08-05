@@ -133,6 +133,10 @@ RenderFourWells:
     sta.l $002110
     sta.l $002110
 
+    lda #$02                       ; Experiment only: show BG2 without UI layers
+    sta.l $7E01E2
+    sta.l $00212C
+
 .done:
     rep #$30
     plb

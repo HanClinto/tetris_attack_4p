@@ -31,6 +31,36 @@ The current main patch builds reproducibly with Asar 1.91:
 - Size: 2,097,152 bytes
 - SHA-1: `7bbd4790bee84f1e8dc03c9626b16b344d607d46`
 
+## Progress
+
+Visual milestones are captured from Mesen and checked in under `docs/progress/` as experiments become useful to inspect. ROMs and generated build output remain excluded from the repository.
+
+| Milestone | Status | Visual result |
+| --- | --- | --- |
+| Four-controller input | Complete | Four independent Multitap words plus processed P3/P4 input state |
+| Four-well Mode 2 layout | Complete | Four 6x12 placeholder fields fit across one 256-pixel screen |
+| Independent well scrolling | Complete | Each controller drives one Mode 2 vertical offset |
+| Virtual P3/P4 board execution | Complete | Original board logic alternates through persistent P3/P4 contexts |
+| Live four-board rendering | In progress | Replace placeholder fields with panel data from native and backing contexts |
+| Four-player menus and HUD | Not started | Capture menu/HUD iterations here once they become interactive |
+
+![Four-well Mode 2 layout proof](docs/progress/four-well-layout.png)
+
+The current visual proof deliberately uses flat placeholder tiles. It validates geometry, independent scrolling, and VBlank timing before new panel art is introduced.
+
+### Panel scale
+
+The original panels appear as 16x16-pixel metatiles, which limits a six-column well to 96 pixels. Four such wells would require 384 pixels before borders, so the original scale cannot fit horizontally on a 256-pixel SNES screen.
+
+The four-player renderer instead targets one 8x8 background tile per panel:
+
+- One well: `6 * 8 = 48` pixels wide
+- Four wells: `4 * 48 = 192` pixels wide
+- Remaining width: 64 pixels for outer borders and three gutters
+- Twelve visible rows: `12 * 8 = 96` pixels high
+
+This matches the proven layout at tile columns 1-6, 9-14, 17-22, and 25-30. A 10x10 design would fit mathematically at 240 pixels, but it does not align with the SNES background tile grid and would require significantly more complex rendering. New compact 8x8 panel faces, cursor art, borders, and HUD elements are therefore expected. The game logic and panel identities can remain unchanged; this is primarily a new graphics and tilemap presentation layer.
+
 ## Test environment
 
 - Mesen 2.1.1, native Apple Silicon build: verified booting and running through the attract-mode tutorial
