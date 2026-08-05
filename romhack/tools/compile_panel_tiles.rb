@@ -129,7 +129,18 @@ glyphs = {
   binary << encode_4bpp(pixels)
 end
 
-abort "compiled tile data must be 480 bytes" unless binary.bytesize == 480
+vertical_border = Array.new(8) { Array.new(8, 0) }
+horizontal_border = Array.new(8) { Array.new(8, 0) }
+8.times do |index|
+  vertical_border[index][3] = 1
+  vertical_border[index][4] = 1
+  horizontal_border[3][index] = 1
+  horizontal_border[4][index] = 1
+end
+binary << encode_4bpp(vertical_border)
+binary << encode_4bpp(horizontal_border)
+
+abort "compiled tile data must be 544 bytes" unless binary.bytesize == 544
 File.binwrite(output_path, binary)
 
 sheet = composite_sheet(images)

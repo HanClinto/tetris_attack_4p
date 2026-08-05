@@ -91,7 +91,9 @@ At tutorial frame 3600, the visible 16x16 panel metatiles are four 8x8 SNES 4bpp
 
 `tests/mesen/tilemap_dump.lua` captures VRAM and CGRAM. `tools/export_panel_tiles.rb` assembles the metatiles and produces palette-index JSON plus naive 8x8 PNG starters under `assets/panels/`.
 
-`tools/compile_panel_tiles.rb` reverses the editable `starter_8x8` JSON rows into 15 SNES 4bpp tiles: transparent `$3E0`, normal panels `$3E1-$3E5`, selected panels `$3E6-$3EA`, and labels `$3EB-$3EE`. The live four-board experiment uploads the 480-byte result at VRAM word `$5E00` and renders two rows per NMI across six phases.
+`tools/compile_panel_tiles.rb` reverses the editable `starter_8x8` JSON rows into 17 SNES 4bpp tiles: transparent `$3E0`, normal panels `$3E1-$3E5`, selected panels `$3E6-$3EA`, labels `$3EB-$3EE`, vertical border `$3EF`, and horizontal border `$3F0`. The live four-board experiment uploads the 544-byte result at VRAM word `$5E00` and renders two rows per NMI across six phases.
+
+Board frames occupy horizontal rows 5 and 18 plus vertical columns 0/7, 8/15, 16/23, and 24/31. A 20-phase initializer writes eight frame words per NMI, avoiding a large one-frame VBlank spike.
 
 Native cursor coordinates are paired words:
 

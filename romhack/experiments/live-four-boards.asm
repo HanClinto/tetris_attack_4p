@@ -28,6 +28,7 @@ RenderLiveFourBoards:
     lda #$00
     sta.l $7FFE3E
     sta.l $7FFE3F
+    sta.l $7FFE46
     brl .done
 
 .mode2:
@@ -145,6 +146,7 @@ RenderLiveFourBoards:
 
     jsr RenderCursors
     jsr RenderLabels
+    jsr InitializeBoardFrameBatch
 
     sep #$20
     lda #$00
@@ -183,7 +185,7 @@ UploadPanelTiles:
     lda.l PanelTiles,x
     sta.l $002119
     inx
-    cpx #$01E0
+    cpx #$0220
     bne .loop
     rts
 
@@ -370,23 +372,101 @@ RenderP4Cursor:
     rts
 
 RenderLabels:
-    lda #$78A3
+    lda #$7883
     sta.l $002116
     lda #$07EB
     sta.l $002118
-    lda #$78AB
+    lda #$788B
     sta.l $002116
     lda #$07EC
     sta.l $002118
-    lda #$78B3
+    lda #$7893
     sta.l $002116
     lda #$07ED
     sta.l $002118
-    lda #$78BB
+    lda #$789B
     sta.l $002116
     lda #$07EE
     sta.l $002118
     rts
+
+InitializeBoardFrameBatch:
+    sep #$20
+    lda.l $7FFE46
+    cmp #$14
+    bcc .writeBatch
+    jmp .done
+
+.writeBatch:
+    inc
+    sta.l $7FFE46
+    dec
+    rep #$30
+    and #$00FF
+    cmp #$000C
+    bcc .sides
+    cmp #$0010
+    bcc .top
+
+    sec
+    sbc #$0010
+    asl
+    asl
+    asl
+    clc
+    adc #$7A40
+    bra .horizontal
+
+.top:
+    sec
+    sbc #$000C
+    asl
+    asl
+    asl
+    clc
+    adc #$78A0
+
+.horizontal:
+    sta.l $002116
+    lda #$07F0
+    sta.l $002118
+    sta.l $002118
+    sta.l $002118
+    sta.l $002118
+    sta.l $002118
+    sta.l $002118
+    sta.l $002118
+    sta.l $002118
+    bra .done
+
+.sides:
+    asl
+    asl
+    asl
+    asl
+    asl
+    clc
+    adc #$78C0
+    sta.l $7FFE48
+    ldx #$0000
+.sideLoop:
+    lda.l BorderColumns,x
+    clc
+    adc.l $7FFE48
+    sta.l $002116
+    lda #$07EF
+    sta.l $002118
+    inx
+    inx
+    cpx #$0010
+    bne .sideLoop
+
+.done:
+    rep #$30
+    rts
+
+BorderColumns:
+    dw $0000,$0007,$0008,$000F,$0010,$0017,$0018,$001F
 
 DrawP1Row:
     lda.l $7E0FAE,x
@@ -478,4 +558,4 @@ org $A09400
 PanelTiles:
     incbin "../build/panel-tiles.4bpp"
 
-assert pc() == $A095E0
+assert pc() == $A09620

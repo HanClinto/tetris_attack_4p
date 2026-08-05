@@ -152,11 +152,38 @@ local function verifyLabels()
     local columns = { 3, 11, 19, 27 }
     for index, column in ipairs(columns) do
         local actual = emu.read16(
-            (0x7800 + 5 * 32 + column) * 2,
+            (0x7800 + 4 * 32 + column) * 2,
             emu.memType.snesVideoRam
         )
         if actual ~= 0x07EA + index then
             return false
+        end
+    end
+    return true
+end
+
+local function verifyFrames()
+    local sideColumns = { 0, 7, 8, 15, 16, 23, 24, 31 }
+    for row = 6, 17 do
+        for _, column in ipairs(sideColumns) do
+            local actual = emu.read16(
+                (0x7800 + row * 32 + column) * 2,
+                emu.memType.snesVideoRam
+            )
+            if actual ~= 0x07EF then
+                return false
+            end
+        end
+    end
+    for _, row in ipairs({ 5, 18 }) do
+        for column = 0, 31 do
+            local actual = emu.read16(
+                (0x7800 + row * 32 + column) * 2,
+                emu.memType.snesVideoRam
+            )
+            if actual ~= 0x07F0 then
+                return false
+            end
         end
     end
     return true
@@ -193,6 +220,8 @@ emu.addEventCallback(function()
                 emu.stop(9)
             elseif not verifyLabels() then
                 emu.stop(10)
+            elseif not verifyFrames() then
+                emu.stop(11)
             else
                 emu.stop(0)
             end
