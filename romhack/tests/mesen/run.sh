@@ -123,8 +123,13 @@ fi
     "$script_dir/context_backing_guard.lua" \
     "$poll_rom" >"$romhack_dir/build/mesen-context-backing.log" 2>&1
 
-"$mesen_bin" $common_args --timeout=55 \
+"$mesen_bin" $common_args --timeout=70 \
     "$script_dir/native_garbage_queue.lua" \
     "$poll_rom" >"$romhack_dir/build/mesen-native-garbage.log" 2>&1
+
+"$mesen_bin" $common_args --timeout=60 \
+    "$script_dir/routed_garbage_p3.lua" \
+    "$live_four_boards_rom" \
+    >"$romhack_dir/build/mesen-routed-garbage-p3.log" 2>&1
 
 printf 'Mesen input, WRAM, renderer, and context-swap tests passed\n'

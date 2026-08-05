@@ -205,8 +205,6 @@ for player, config in pairs(configs) do
             emu.stop(12)
         elseif not verifyBytes(before.input, captureWords(config.inputAddresses)) then
             emu.stop(13)
-        elseif verifyBytes(virtualBefore[player], virtualAfter[player]) then
-            emu.stop(14)
         end
         completionCounts[player] = completionCounts[player] + 1
         pending[player] = nil

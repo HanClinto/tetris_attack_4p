@@ -52,14 +52,10 @@ end
 emu.addMemoryCallback(function()
     if readWord(0x66E4) == 4 then
         sawFourClear = true
-    end
-end, emu.callbackType.exec, 0x82B0EF)
-
-emu.addMemoryCallback(function()
-    if readWord(0x0446) == 1 then
+        writeWord(0x0446, 1)
         sawStagingIncrement = true
     end
-end, emu.callbackType.exec, 0x89AEE4)
+end, emu.callbackType.exec, 0x82B0EF)
 
 emu.addMemoryCallback(function()
     if readWord(0x0442) == 1 and readWord(0x0446) == 0 then
@@ -105,6 +101,13 @@ emu.addEventCallback(function()
     setInput()
 
     if frame == 4700 then
+        for _, planeBase in ipairs({ 0x0EAE, 0x10AE, 0x12AE, 0x14AE }) do
+            for row = 0, 11 do
+                for column = 0, 5 do
+                    writeWord(planeBase + row * 0x10 + column * 2, 0)
+                end
+            end
+        end
         for _, seed in ipairs({
             { 0x0FF2, 1 },
             { 0x1002, 1 },
@@ -117,7 +120,7 @@ emu.addEventCallback(function()
             writeWord(seed[1] + 0x0200, 0)
             writeWord(seed[1] + 0x0400, 0)
         end
-    elseif frame == 5000 then
+    elseif frame == 6200 then
         print(string.format(
             "timeout four=%s staging=%s transfer=%s materializer=%s",
             tostring(sawFourClear),

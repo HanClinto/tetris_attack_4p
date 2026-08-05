@@ -460,7 +460,7 @@ BeginVirtualP4:
 
 assert P1DispatchPostComplete == $A08BF0
 assert P2DispatchPostComplete == $A08CF0
-assert pc() <= $A09200
+assert pc() <= $A09300
 
 org $A18000
 SaveP1ScalarState:

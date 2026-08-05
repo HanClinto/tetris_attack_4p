@@ -68,7 +68,7 @@ local function selectedPanelWord(color)
     end
 end
 
-local function verifyBoard(boardIndex)
+local function verifyBoard(boardIndex, verbose)
     local sourceBase = boardSources[boardIndex]
     local startColumn = 1 + (boardIndex - 1) * 8
     local cursor = cursorSources[boardIndex]
@@ -91,6 +91,9 @@ local function verifyBoard(boardIndex)
                 emu.memType.snesVideoRam
             )
             if actual ~= expected then
+                if not verbose then
+                    return false
+                end
                 print(string.format(
                     "board=%d row=%d column=%d color=$%04X expected=$%04X actual=$%04X",
                     boardIndex,
@@ -237,43 +240,43 @@ emu.addEventCallback(function()
     elseif frame == 4710 then
         emu.write(0x10932, 1, emu.memType.snesWorkRam)
         emu.write(0x10933, 0, emu.memType.snesWorkRam)
-    elseif frame == 4720 then
+    elseif frame >= 4720 and frame <= 4780 then
         local state = emu.getState()
+        local failure = nil
         if emu.read(0x01BA, emu.memType.snesWorkRam) ~= 0x02 or
             state["ppu.bgMode"] ~= 0x02 then
-            emu.stop(2)
+            failure = "mode"
         elseif state["ppu.layers[1].tilemapAddress"] ~= 0x7800 or
             state["ppu.layers[1].chrAddress"] ~= 0x2000 or
             state["ppu.layers[1].hscroll"] ~= 0 or
             state["ppu.layers[1].vscroll"] ~= 0 then
-            print(string.format(
-                "bg2 map=$%04X chr=$%04X scroll=%d,%d",
-                state["ppu.layers[1].tilemapAddress"] or 0,
-                state["ppu.layers[1].chrAddress"] or 0,
-                state["ppu.layers[1].hscroll"] or 0,
-                state["ppu.layers[1].vscroll"] or 0
-            ))
-            emu.stop(8)
+            failure = "BG2 state"
         elseif not verifyTileUpload() then
-            emu.stop(3)
+            failure = "tile upload"
         else
             for boardIndex = 1, 4 do
-                if not verifyBoard(boardIndex) then
-                    emu.stop(3 + boardIndex)
-                    return
+                if not verifyBoard(boardIndex, frame == 4780) then
+                    failure = "board " .. boardIndex
+                    break
                 end
             end
-            if not verifyCursors() then
-                emu.stop(9)
+            if failure ~= nil then
+                -- Wait for a coherent row/cursor refresh cycle.
+            elseif not verifyCursors() then
+                failure = "cursors"
             elseif not verifyLabels() then
-                emu.stop(10)
+                failure = "labels"
             elseif not verifyFrames() then
-                emu.stop(11)
+                failure = "frames"
             elseif not verifyStatuses() then
-                emu.stop(12)
-            else
-                emu.stop(0)
+                failure = "statuses"
             end
+        end
+        if failure == nil then
+            emu.stop(0)
+        elseif frame == 4780 then
+            print("renderer did not converge: " .. failure)
+            emu.stop(7)
         end
     end
 end, emu.eventType.startFrame)

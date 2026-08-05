@@ -9,6 +9,10 @@ org $808E4D
 org $808E7B
     jsl LiveFourBoardHook
 
+org $89AEDD
+    jsl RouteP1ThreeWideToP3
+    nop #3
+
 org $A08400
 LiveFourBoardHook:
     jsl $8090F3
@@ -683,6 +687,8 @@ AutoArmP1DispatchPreHook:
     sta.l $7F2008
     sta.l $7F2009
     sta.l $7F200A
+    sta.l $7F200C
+    sta.l $7F200D
     lda #$5A
     sta.l $7F200B
     lda #$A5
@@ -694,6 +700,28 @@ AutoArmP1DispatchPreHook:
     rtl
 
 assert pc() <= $A19680
+
+org $A19680
+RouteP1ThreeWideToP3:
+    php
+    rep #$20
+    lda.l $7F200C
+    cmp #$C35A
+    bne .native
+    lda.l $7F0C0C
+    inc
+    sta.l $7F0C0C
+    plp
+    rtl
+
+.native:
+    lda.l $7E0446
+    inc
+    sta.l $7E0446
+    plp
+    rtl
+
+assert pc() <= $A19700
 
 org $A19700
 RenderFourPlayerMenuLabel:

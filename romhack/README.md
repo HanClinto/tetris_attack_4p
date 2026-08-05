@@ -45,6 +45,7 @@ Visual milestones are captured from Mesen and checked in under `docs/progress/` 
 | Live four-board rendering | Prototype complete | Compact JSON-derived tiles render P1-P4 native/backing panel data |
 | Player frames, cursors, and labels | Prototype complete | Thin four-well borders, independent two-cell outlines, and P1-P4 labels |
 | Compact status HUD | Prototype complete | Rotating green `OK` and red `!!` danger indicators for all four boards |
+| Native garbage routing | First route proven | P1 three-wide combo garbage bypasses P2, transfers through P3's persisted queue, and materializes in P3 backing |
 | Temporary four-player launch | Prototype complete | Enter normal 2P VS; active match startup auto-arms P1-P4 scheduling |
 | Dedicated four-player menu entry | Prototype complete | Main menu visibly offers `4PLAYER GAME` on the working launch route |
 
