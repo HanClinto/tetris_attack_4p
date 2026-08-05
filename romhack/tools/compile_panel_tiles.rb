@@ -165,7 +165,15 @@ status_glyphs.each do |status, glyph_pair|
   binary << encode_4bpp(pixels)
 end
 
-abort "compiled tile data must be 608 bytes" unless binary.bytesize == 608
+menu_digit = Array.new(8) { Array.new(8, 0) }
+glyphs.fetch("4").each_with_index do |row, row_index|
+  row.chars.each_with_index do |pixel, column_index|
+    menu_digit[row_index + 1][column_index + 2] = pixel == "1" ? 1 : 0
+  end
+end
+binary << encode_4bpp(menu_digit)
+
+abort "compiled tile data must be 640 bytes" unless binary.bytesize == 640
 File.binwrite(output_path, binary)
 
 sheet = composite_sheet(images)

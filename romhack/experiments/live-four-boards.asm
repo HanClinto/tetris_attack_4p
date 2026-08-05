@@ -28,6 +28,17 @@ RenderLiveFourBoards:
     lda.l $7E01BA
     cmp #$02
     beq .mode2
+    cmp #$01
+    beq .menu
+    lda #$00
+    sta.l $7FFE3E
+    sta.l $7FFE3F
+    sta.l $7FFE46
+    sta.l $7FFE4A
+    brl .done
+
+.menu:
+    jsl RenderFourPlayerMenuLabel
     lda #$00
     sta.l $7FFE3E
     sta.l $7FFE3F
@@ -649,7 +660,7 @@ org $A09400
 PanelTiles:
     incbin "../build/panel-tiles.4bpp"
 
-assert pc() == $A09660
+assert pc() == $A09680
 
 org $A19600
 AutoArmP1DispatchPreHook:
@@ -683,3 +694,44 @@ AutoArmP1DispatchPreHook:
     rtl
 
 assert pc() <= $A19680
+
+org $A19700
+RenderFourPlayerMenuLabel:
+    php
+    sep #$20
+    lda.l $7FFE4A
+    bne .map
+    inc
+    sta.l $7FFE4A
+
+    lda #$80
+    sta.l $002115
+    rep #$20
+    lda #$5F30
+    sta.l $002116
+    sep #$20
+    rep #$10
+    ldx #$0000
+.upload:
+    lda.l PanelTiles+$0260,x
+    sta.l $002118
+    inx
+    lda.l PanelTiles+$0260,x
+    sta.l $002119
+    inx
+    cpx #$0020
+    bne .upload
+
+.map:
+    sep #$20
+    lda #$80
+    sta.l $002115
+    rep #$20
+    lda #$6926
+    sta.l $002116
+    lda #$0BF3
+    sta.l $002118
+    plp
+    rtl
+
+assert pc() <= $A19800
