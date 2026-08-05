@@ -111,3 +111,14 @@ The exhaustive CPU loop is not production-ready. It copies 8 KiB in one invocati
 Direct DMA through the WRAM data port (`$2180`) is not usable for this transfer: a WRAM-bank source and the WRAM I/O destination contend for the same bus, and an isolated probe copied `$00` instead of the native byte. The original ROM also declares no cartridge SRAM (`$7FD8 = $00`), so adding SRAM merely as a DMA staging area would impose a new cartridge requirement. `MVN` is therefore the current production candidate.
 
 The 8 KiB proof is still not atomic: an NMI can occur while extra-player data occupies the native slots. A production update should reduce the critical section to one 4 KiB slot transaction (save native, load extra, update extra, save extra, restore native) and likely alternate P3/P4 across frames. That keeps unrelated NMI work from observing both temporary contexts at once and leaves more frame time for the original board update routine.
+
+## Per-context dispatcher proof
+
+The active versus loop calls `$82:A9C8` once per native player:
+
+- P1 caller `$82:9DA6`, with `$7E:0360 = $0000`
+- P2 caller `$82:9E5C`, with `$7E:0360 = $0002`
+
+`experiments/context-dispatch-probe.asm` virtualizes the P2 plane slot around the real P2 update slice. It clones P2 into P3 backing, lets the unmodified `$82:A9C8` dispatcher run while that virtual context occupies native slot 2, saves the result to P3 backing, and restores P2. The Mesen assertion verifies dispatcher entry, virtual-context residency, P3 save-back, the P2 backup, and byte-exact P2 restoration.
+
+This proves the existing board logic can execute against a swapped extra-player plane context. It does not yet make P3 independent: instruction-level tracing shows additional player-indexed words at `$00B7/$00B9`, `$00BB/$00BD`, and across `$03EE-$04FA`. Confirmed dispatcher writes include `$0424/$0426` and `$04F4/$04F6`. Those scalar/input words need a compact sidecar save/load map before the dispatcher can persist a complete P3 or P4 state.

@@ -70,8 +70,26 @@ local function observe(operation, address)
     local dbr = state["cpu.dbr"] or 0
     local x = state["cpu.x"] or 0
     local y = state["cpu.y"] or 0
+    local sp = state["cpu.sp"] or state["cpu.s"] or 0
+    local stackBytes = {}
+    for offset = 1, 8 do
+        stackBytes[offset] = emu.read(
+            (sp + offset) & 0xFFFF,
+            emu.memType.snesMemoryDebug
+        )
+    end
     local normalized = normalizeAddress(address)
-    local key = string.format("%s:%06X:%02X:%04X:%04X", operation, pc, dbr, x, y)
+    local stack = table.concat(stackBytes, ",")
+    local key = string.format(
+        "%s:%06X:%02X:%04X:%04X:%04X:%s",
+        operation,
+        pc,
+        dbr,
+        x,
+        y,
+        sp,
+        stack
+    )
     local event = events[key]
     if event == nil then
         event = {
@@ -80,6 +98,8 @@ local function observe(operation, address)
             dbr = dbr,
             x = x,
             y = y,
+            sp = sp,
+            stack = stackBytes,
             count = 0,
             minimum = normalized,
             maximum = normalized,
@@ -101,12 +121,15 @@ local function writeEvents(path)
     for _, key in ipairs(keys) do
         local event = events[key]
         output:write(string.format(
-            "%s pc=$%06X dbr=$%02X x=$%04X y=$%04X count=%d range=$%04X-$%04X\n",
+            "%s pc=$%06X dbr=$%02X x=$%04X y=$%04X sp=$%04X " ..
+            "stack=%s count=%d range=$%04X-$%04X\n",
             event.operation,
             event.pc,
             event.dbr,
             event.x,
             event.y,
+            event.sp,
+            table.concat(event.stack, ","),
             event.count,
             event.minimum,
             event.maximum
