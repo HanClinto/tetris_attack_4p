@@ -75,3 +75,4 @@ The renderer must run earlier than controller polling. A late controller-hook ex
 The `multitap-auto-read` experiment routes P1 through `$421E` to investigate automatic reads from the Multitap's second data line. Its automated button-input test is currently inconclusive because Mesen 2.1.1's Lua `setInput` path does not update the SNES serial shift buffer in this headless workflow.
 
 See [`notes/rom-map.md`](notes/rom-map.md) for confirmed addresses.
+See [`notes/board-engine.md`](notes/board-engine.md) for the two-player context layout and four-player execution strategy.
