@@ -185,6 +185,14 @@ assert pc() <= $A09300
 
 org $A08D00
 SaveP2ScalarState:
+    lda.l $7E03A6
+    sta.l $7F0C26,x
+    lda.l $7E03AA
+    sta.l $7F0C28,x
+    lda.l $7E03AE
+    sta.l $7F0C2A,x
+    lda.l $7E03B2
+    sta.l $7F0C2C,x
     lda.l $7E03F0
     sta.l $7F0C00,x
     lda.l $7E0402
@@ -228,6 +236,14 @@ SaveP2ScalarState:
 RestoreP2ScalarState:
     ldx #$0100
 LoadP2ScalarState:
+    lda.l $7F0C26,x
+    sta.l $7E03A6
+    lda.l $7F0C28,x
+    sta.l $7E03AA
+    lda.l $7F0C2A,x
+    sta.l $7E03AE
+    lda.l $7F0C2C,x
+    sta.l $7E03B2
     lda.l $7F0C00,x
     sta.l $7E03F0
     lda.l $7F0C02,x

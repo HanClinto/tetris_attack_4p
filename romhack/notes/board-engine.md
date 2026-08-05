@@ -121,7 +121,7 @@ The active versus loop calls `$82:A9C8` once per native player:
 
 `experiments/context-dispatch-probe.asm` virtualizes the P2 plane slot around the real P2 update slice. It clones P2 into P3 backing, lets the unmodified `$82:A9C8` dispatcher run while that virtual context occupies native slot 2, saves the result to P3 backing, and restores P2. The Mesen assertion verifies dispatcher entry, virtual-context residency, P3 save-back, the P2 backup, and byte-exact P2 restoration.
 
-Instruction-level tracing reduced non-plane dispatcher state to 19 native player word pairs across `$03EE-$04FA`. The experiment now saves, loads, and restores exactly those words as a compact scalar sidecar. It also maps the native P2 input words at `$00B5`, `$00B9`, `$00BD`, `$00C7`, and `$00CD` to P3's processed input structure at `$7F:FE10-$7F:FE18`.
+Instruction-level tracing reduced non-plane dispatcher state to 19 native player word pairs across `$03EE-$04FA`. Four cursor words extend the persisted scalar sidecar to 23 words: logical column/row `$03A6/$03AA` and mirrored presentation coordinates `$03AE/$03B2`. It also maps the native P2 input words at `$00B5`, `$00B9`, `$00BD`, `$00C7`, and `$00CD` to P3's processed input structure at `$7F:FE10-$7F:FE18`.
 
 The scheduler now uses four phases: native P2, virtual P3, native P2, virtual P4. P3 planes/scalars use `$7F:0800/$0C00`; P4 uses `$7F:1000/$1400`. The active-match ownership guard covers the complete `$7F:0000-$14FF` allocation.
 

@@ -143,6 +143,9 @@ RenderLiveFourBoards:
     cmp.l $7FFE40
     bne .rowLoop
 
+    jsr RenderCursors
+    jsr RenderLabels
+
     sep #$20
     lda #$00
     sta.l $00210F
@@ -180,7 +183,7 @@ UploadPanelTiles:
     lda.l PanelTiles,x
     sta.l $002119
     inx
-    cpx #$00C0
+    cpx #$01E0
     bne .loop
     rts
 
@@ -239,6 +242,150 @@ PanelWord:
 
 .blank:
     lda #$03E0
+    rts
+
+SelectedPanelWord:
+    and #$00FF
+    beq .blank
+    cmp #$0005
+    beq .diamond
+    bcs .blank
+    clc
+    adc #$07E5
+    rts
+
+.diamond:
+    lda #$0BEA
+    rts
+
+.blank:
+    lda #$03E0
+    rts
+
+RenderCursors:
+    lda.l $7E03A8
+    tay
+    lda.l $7E03A4
+    jsr RenderP1Cursor
+    lda.l $7E03AA
+    tay
+    lda.l $7E03A6
+    jsr RenderP2Cursor
+    lda.l $7F0C28
+    tay
+    lda.l $7F0C26
+    jsr RenderP3Cursor
+    lda.l $7F1428
+    tay
+    lda.l $7F1426
+    jsr RenderP4Cursor
+    rts
+
+CursorTilemapAddress:
+    sta.l $7FFE42
+    tya
+    asl
+    asl
+    asl
+    asl
+    asl
+    clc
+    adc.l $7FFE44
+    adc.l $7FFE42
+    sta.l $002116
+    rts
+
+CursorSourceOffset:
+    asl
+    asl
+    asl
+    clc
+    adc.l $7FFE42
+    asl
+    tax
+    rts
+
+RenderP1Cursor:
+    pha
+    lda #$78C1
+    sta.l $7FFE44
+    pla
+    jsr CursorTilemapAddress
+    tya
+    jsr CursorSourceOffset
+    lda.l $7E0FAE,x
+    jsr SelectedPanelWord
+    sta.l $002118
+    lda.l $7E0FB0,x
+    jsr SelectedPanelWord
+    sta.l $002118
+    rts
+
+RenderP2Cursor:
+    pha
+    lda #$78C9
+    sta.l $7FFE44
+    pla
+    jsr CursorTilemapAddress
+    tya
+    jsr CursorSourceOffset
+    lda.l $7E10AE,x
+    jsr SelectedPanelWord
+    sta.l $002118
+    lda.l $7E10B0,x
+    jsr SelectedPanelWord
+    sta.l $002118
+    rts
+
+RenderP3Cursor:
+    pha
+    lda #$78D1
+    sta.l $7FFE44
+    pla
+    jsr CursorTilemapAddress
+    tya
+    jsr CursorSourceOffset
+    lda.l $7F0932,x
+    jsr SelectedPanelWord
+    sta.l $002118
+    lda.l $7F0934,x
+    jsr SelectedPanelWord
+    sta.l $002118
+    rts
+
+RenderP4Cursor:
+    pha
+    lda #$78D9
+    sta.l $7FFE44
+    pla
+    jsr CursorTilemapAddress
+    tya
+    jsr CursorSourceOffset
+    lda.l $7F1132,x
+    jsr SelectedPanelWord
+    sta.l $002118
+    lda.l $7F1134,x
+    jsr SelectedPanelWord
+    sta.l $002118
+    rts
+
+RenderLabels:
+    lda #$78A3
+    sta.l $002116
+    lda #$07EB
+    sta.l $002118
+    lda #$78AB
+    sta.l $002116
+    lda #$07EC
+    sta.l $002118
+    lda #$78B3
+    sta.l $002116
+    lda #$07ED
+    sta.l $002118
+    lda #$78BB
+    sta.l $002116
+    lda #$07EE
+    sta.l $002118
     rts
 
 DrawP1Row:
@@ -325,10 +472,10 @@ DrawP4Row:
     sta.l $002118
     rts
 
-assert pc() <= $A08B00
+assert pc() <= $A08D00
 
 org $A09400
 PanelTiles:
     incbin "../build/panel-tiles.4bpp"
 
-assert pc() == $A094C0
+assert pc() == $A095E0

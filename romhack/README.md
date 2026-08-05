@@ -42,6 +42,7 @@ Visual milestones are captured from Mesen and checked in under `docs/progress/` 
 | Independent well scrolling | Complete | Each controller drives one Mode 2 vertical offset |
 | Virtual P3/P4 board execution | Complete | Original board logic alternates through persistent P3/P4 contexts |
 | Live four-board rendering | Prototype complete | Compact JSON-derived tiles render P1-P4 native/backing panel data |
+| Player cursors and labels | Prototype complete | Independent two-cell outlines plus compact P1-P4 labels |
 | Four-player menus and HUD | Not started | Capture menu/HUD iterations here once they become interactive |
 
 ![Four-well Mode 2 layout proof](docs/progress/four-well-layout.png)
@@ -50,7 +51,7 @@ The current visual proof deliberately uses flat placeholder tiles. It validates 
 
 ![Live P1-P4 compact panel rendering](docs/progress/live-four-boards.png)
 
-The live renderer uploads the JSON-compiled 8x8 tiles and maps all 288 cells from P1/P2 native state plus P3/P4 backing contexts. It currently refreshes two rows per NMI, completing all four boards every six frames with reliable active-versus VBlank margin.
+The live renderer uploads the JSON-compiled 8x8 tiles and maps all 288 cells from P1/P2 native state plus P3/P4 backing contexts. It includes independent two-cell cursor outlines and compact player labels. It currently refreshes two rows per NMI, completing all four boards every six frames with reliable active-versus VBlank margin.
 
 The first compact panel-art export is also available as editable source material:
 

@@ -29,7 +29,7 @@ The data flow is:
 panels.json starter_8x8
   -> panel-*-8x8.png
   -> panel-starter-8x8.png and preview
-  -> build/panel-tiles.4bpp
+  -> build/panel-tiles.4bpp (normal, selected, and P1-P4 label tiles)
   -> live-four-boards experiment
 ```
 

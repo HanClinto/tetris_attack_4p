@@ -91,7 +91,16 @@ At tutorial frame 3600, the visible 16x16 panel metatiles are four 8x8 SNES 4bpp
 
 `tests/mesen/tilemap_dump.lua` captures VRAM and CGRAM. `tools/export_panel_tiles.rb` assembles the metatiles and produces palette-index JSON plus naive 8x8 PNG starters under `assets/panels/`.
 
-`tools/compile_panel_tiles.rb` reverses the editable `starter_8x8` JSON rows into six SNES 4bpp tiles: transparent tile `$3E0` and panels `$3E1-$3E5`. The live four-board experiment uploads the 192-byte result at VRAM word `$5E00` and renders two rows per NMI across six phases.
+`tools/compile_panel_tiles.rb` reverses the editable `starter_8x8` JSON rows into 15 SNES 4bpp tiles: transparent `$3E0`, normal panels `$3E1-$3E5`, selected panels `$3E6-$3EA`, and labels `$3EB-$3EE`. The live four-board experiment uploads the 480-byte result at VRAM word `$5E00` and renders two rows per NMI across six phases.
+
+Native cursor coordinates are paired words:
+
+- P1 logical column/row: `$7E:03A4/$03A8`
+- P2 logical column/row: `$7E:03A6/$03AA`
+- P1 mirrored presentation column/row: `$7E:03AC/$03B0`
+- P2 mirrored presentation column/row: `$7E:03AE/$03B2`
+
+P3/P4 persist the P2 coordinate words in scalar backing and render selected variants for the two adjacent cells beginning at the logical cursor column.
 
 Dynamic experiment state:
 

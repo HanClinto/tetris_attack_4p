@@ -98,7 +98,38 @@ panels.each do |panel|
   write_png(File.join(asset_dir, "#{panel.fetch("name")}-8x8.png"), image)
 end
 
-abort "compiled tile data must be 192 bytes" unless binary.bytesize == 192
+panels.each do |panel|
+  pixels = parse_pixels(panel).map(&:dup)
+  8.times do |index|
+    pixels[0][index] = 1
+    pixels[7][index] = 1
+    pixels[index][0] = 1
+    pixels[index][7] = 1
+  end
+  binary << encode_4bpp(pixels)
+end
+
+glyphs = {
+  "P" => ["110", "101", "110", "100", "100"],
+  "1" => ["010", "110", "010", "010", "111"],
+  "2" => ["110", "001", "010", "100", "111"],
+  "3" => ["110", "001", "010", "001", "110"],
+  "4" => ["101", "101", "111", "001", "001"]
+}.freeze
+
+(1..4).each do |player|
+  pixels = Array.new(8) { Array.new(8, 0) }
+  [glyphs.fetch("P"), glyphs.fetch(player.to_s)].each_with_index do |glyph, glyph_index|
+    glyph.each_with_index do |row, row_index|
+      row.chars.each_with_index do |pixel, column_index|
+        pixels[row_index + 1][glyph_index * 4 + column_index] = pixel.to_i
+      end
+    end
+  end
+  binary << encode_4bpp(pixels)
+end
+
+abort "compiled tile data must be 480 bytes" unless binary.bytesize == 480
 File.binwrite(output_path, binary)
 
 sheet = composite_sheet(images)
