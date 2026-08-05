@@ -123,4 +123,8 @@ The active versus loop calls `$82:A9C8` once per native player:
 
 Instruction-level tracing reduced non-plane dispatcher state to 19 native player word pairs across `$03EE-$04FA`. The experiment now saves, loads, and restores exactly those words as a compact scalar sidecar. It also maps the native P2 input words at `$00B5`, `$00B9`, `$00BD`, `$00C7`, and `$00CD` to P3's processed input structure at `$7F:FE10-$7F:FE18`.
 
-The strengthened test injects a P3 A press, verifies that the native P2 input slots contain P3's values during the virtual update, and confirms that the original update slice changes P3's four-plane board context. P3 plane/scalar state saves back while every captured P2 plane, scalar, and input byte restores exactly. This establishes an independent one-shot P3 board update through the native engine. Repeated scheduling, P4 alternation, and rendering the virtual contexts remain separate integration work.
+The scheduler now uses four phases: native P2, virtual P3, native P2, virtual P4. P3 planes/scalars use `$7F:0800/$0C00`; P4 uses `$7F:1000/$1400`. The active-match ownership guard covers the complete `$7F:0000-$14FF` allocation.
+
+The strengthened test injects A presses for both extra players and verifies two independent updates apiece. During each virtual phase, native slot 2 contains the selected player's planes, scalar sidecar, and processed input. The original update slice changes that virtual board, saves it back to the correct P3/P4 context, and restores every captured P2 plane, scalar, and input byte. This establishes repeated P3/P4 board execution through the native engine.
+
+The experimental schedule gives P2 half the native update rate and P3/P4 one quarter each. A production scheduler may need to use both native slots, reduce the copied state further, or budget extra updates outside the current slice. Rendering the virtual contexts also remains separate integration work.

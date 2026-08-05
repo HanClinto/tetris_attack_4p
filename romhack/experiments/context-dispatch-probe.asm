@@ -20,24 +20,26 @@ ContextDispatchPreHook:
     lda.l $7F2000
     cmp #$A5
     bne .done
-    lda #$00
-    sta.l $7F2000
-    lda #$5A
-    sta.l $7F2001
+    lda.l $7F2004
+    inc
+    and #$03
+    sta.l $7F2004
+    cmp #$01
+    beq .p3
+    cmp #$03
+    bne .done
 
+    lda #$04
+    sta.l $7F2001
     rep #$30
-    ldx #$0100
-    ldy #$0000
-    jsr SaveNativeSlotBlockMove
-    ldx #$0100
-    ldy #$0800
-    jsr SaveNativeSlotBlockMove
-    ldx #$0100
-    jsr SaveP2ScalarState
-    ldx #$0000
-    jsr SaveP2ScalarState
-    jsr LoadP3ScalarState
-    jsr LoadP3InputState
+    jsr BeginVirtualP4
+    bra .done
+
+.p3:
+    lda #$03
+    sta.l $7F2001
+    rep #$30
+    jsr BeginVirtualP3
 
 .done:
     rep #$30
@@ -58,17 +60,41 @@ ContextDispatchPostHook:
     phb
 
     sep #$20
-    lda.l $7F2001
-    cmp #$5A
-    bne .done
     lda #$00
-    sta.l $7F2001
+    sta.l $7F2005
+    lda.l $7F2001
+    cmp #$03
+    beq .p3
+    cmp #$04
+    bne .done
 
+.p4:
+    rep #$30
+    ldx #$0100
+    ldy #$1000
+    jsr SaveNativeSlotBlockMove
+    ldx #$0800
+    jsr SaveP2ScalarState
+    sep #$20
+    lda #$04
+    sta.l $7F2005
+    inc.w $2007
+    bra .restore
+
+.p3:
     rep #$30
     ldx #$0100
     ldy #$0800
     jsr SaveNativeSlotBlockMove
-    jsr SaveP3ScalarState
+    ldx #$0000
+    jsr SaveP2ScalarState
+    sep #$20
+    lda #$03
+    sta.l $7F2005
+    inc.w $2006
+
+.restore:
+    rep #$30
     jsr RestoreP2ScalarState
     jsr RestoreP2InputState
     ldx #$0000
@@ -76,11 +102,18 @@ ContextDispatchPostHook:
     jsr LoadNativeSlotBlockMove
 
     sep #$20
+    lda #$00
+    sta.l $7F2001
     lda.l $7F2002
     inc
     sta.l $7F2002
 
 .done:
+    jml ContextDispatchPostComplete
+
+assert pc() <= $A08C00
+
+org $A08C00
 ContextDispatchPostComplete:
     rep #$30
     plb
@@ -91,7 +124,7 @@ ContextDispatchPostComplete:
     jsl $85B9C1
     rtl
 
-org $A08C00
+org $A09200
 SaveNativeSlotBlockMove:
     txa
     clc
@@ -148,6 +181,8 @@ LoadNativeSlotBlockMove:
     mvn $7E,$7F
     rts
 
+assert pc() <= $A09300
+
 org $A08D00
 SaveP2ScalarState:
     lda.l $7E03F0
@@ -189,10 +224,6 @@ SaveP2ScalarState:
     lda.l $7E04FA
     sta.l $7F0C24,x
     rts
-
-LoadP3ScalarState:
-    ldx #$0000
-    bra LoadP2ScalarState
 
 RestoreP2ScalarState:
     ldx #$0100
@@ -237,12 +268,7 @@ LoadP2ScalarState:
     sta.l $7E04FA
     rts
 
-SaveP3ScalarState:
-    ldx #$0000
-    jsr SaveP2ScalarState
-    rts
-
-LoadP3InputState:
+SaveP2InputState:
     lda.l $7E00B5
     sta.l $7F0D40
     lda.l $7E00B9
@@ -253,15 +279,19 @@ LoadP3InputState:
     sta.l $7F0D46
     lda.l $7E00CD
     sta.l $7F0D48
-    lda.l $7FFE10
+
+    rts
+
+LoadVirtualInputState:
+    lda.l $7F0000,x
     sta.l $7E00B5
-    lda.l $7FFE12
+    lda.l $7F0002,x
     sta.l $7E00B9
-    lda.l $7FFE14
+    lda.l $7F0004,x
     sta.l $7E00BD
-    lda.l $7FFE16
+    lda.l $7F0006,x
     sta.l $7E00C7
-    lda.l $7FFE18
+    lda.l $7F0008,x
     sta.l $7E00CD
     rts
 
@@ -278,5 +308,74 @@ RestoreP2InputState:
     sta.l $7E00CD
     rts
 
-assert ContextDispatchPostComplete == $A08BBF
-assert pc() <= $A09000
+org $A09000
+BeginVirtualP3:
+    ldx #$0100
+    ldy #$0000
+    jsr SaveNativeSlotBlockMove
+    ldx #$0100
+    jsr SaveP2ScalarState
+    jsr SaveP2InputState
+
+    sep #$20
+    lda.l $7F2008
+    bne .load
+    inc
+    sta.l $7F2008
+    rep #$30
+    ldx #$0100
+    ldy #$0800
+    jsr SaveNativeSlotBlockMove
+    ldx #$0000
+    jsr SaveP2ScalarState
+    bra .input
+
+.load:
+    rep #$30
+    ldx #$0800
+    ldy #$0100
+    jsr LoadNativeSlotBlockMove
+    ldx #$0000
+    jsr LoadP2ScalarState
+
+.input:
+    ldx #$FE10
+    jsr LoadVirtualInputState
+    rts
+
+BeginVirtualP4:
+    ldx #$0100
+    ldy #$0000
+    jsr SaveNativeSlotBlockMove
+    ldx #$0100
+    jsr SaveP2ScalarState
+    jsr SaveP2InputState
+
+    sep #$20
+    lda.l $7F2009
+    bne .load
+    inc
+    sta.l $7F2009
+    rep #$30
+    ldx #$0100
+    ldy #$1000
+    jsr SaveNativeSlotBlockMove
+    ldx #$0800
+    jsr SaveP2ScalarState
+    bra .input
+
+.load:
+    rep #$30
+    ldx #$1000
+    ldy #$0100
+    jsr LoadNativeSlotBlockMove
+    ldx #$0800
+    jsr LoadP2ScalarState
+
+.input:
+    ldx #$FE20
+    jsr LoadVirtualInputState
+    rts
+
+assert ContextDispatchPostComplete == $A08C00
+assert pc() <= $A09200

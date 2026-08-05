@@ -32,7 +32,7 @@ emu.addMemoryCallback(
     observeRead,
     emu.callbackType.read,
     0x10000,
-    0x10FFF,
+    0x114FF,
     emu.cpuType.snes,
     emu.memType.snesWorkRam
 )
@@ -40,7 +40,7 @@ emu.addMemoryCallback(
     observeWrite,
     emu.callbackType.write,
     0x10000,
-    0x10FFF,
+    0x114FF,
     emu.cpuType.snes,
     emu.memType.snesWorkRam
 )

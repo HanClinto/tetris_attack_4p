@@ -1,12 +1,17 @@
 local frame = 0
 local syntheticInput1 = 0
 local syntheticInput2 = 0
+local armed = false
+local pendingPlayer = nil
 local nativeBefore = nil
-local virtualAfter = nil
 local scalarBefore = nil
-local virtualScalarAfter = nil
 local inputBefore = nil
-local dispatcherEntries = 0
+local virtualBefore = {}
+local virtualAfter = {}
+local virtualScalarAfter = {}
+local dispatcherEntries = { [3] = 0, [4] = 0 }
+local completionCounts = { [3] = 0, [4] = 0 }
+local boardChanged = { [3] = false, [4] = false }
 local preHookEntries = 0
 local postHookEntries = 0
 
@@ -19,10 +24,14 @@ local scalarAddresses = {
 }
 local inputAddresses = { 0x00B5, 0x00B9, 0x00BD, 0x00C7, 0x00CD }
 local p3InputAddresses = { 0x1FE10, 0x1FE12, 0x1FE14, 0x1FE16, 0x1FE18 }
+local p4InputAddresses = { 0x1FE20, 0x1FE22, 0x1FE24, 0x1FE26, 0x1FE28 }
+local planeBacking = { [3] = 0x10800, [4] = 0x11000 }
+local scalarBacking = { [3] = 0x10C00, [4] = 0x11400 }
+local inputBacking = { [3] = p3InputAddresses, [4] = p4InputAddresses }
 
-emu.write(0x12000, 0, emu.memType.snesWorkRam)
-emu.write(0x12001, 0, emu.memType.snesWorkRam)
-emu.write(0x12002, 0, emu.memType.snesWorkRam)
+for offset = 0, 9 do
+    emu.write(0x12000 + offset, 0, emu.memType.snesWorkRam)
+end
 
 for _, bank in ipairs({ 0x000000, 0x800000 }) do
     emu.addMemoryCallback(function() return syntheticInput1 & 0xFF end,
@@ -117,7 +126,7 @@ local function setMenuInput()
 end
 
 emu.addMemoryCallback(function()
-    if nativeBefore == nil then
+    if not armed then
         return
     end
 
@@ -130,65 +139,97 @@ emu.addMemoryCallback(function()
         return
     end
 
-    dispatcherEntries = dispatcherEntries + 1
+    local activePlayer = emu.read(0x12001, emu.memType.snesWorkRam)
+    if activePlayer ~= 3 and activePlayer ~= 4 then
+        return
+    elseif activePlayer ~= pendingPlayer then
+        emu.stop(15)
+        return
+    end
+
+    dispatcherEntries[activePlayer] = dispatcherEntries[activePlayer] + 1
     if not verifyBytes(
         captureNativeP2(),
-        captureBacking(0x10800)
+        captureBacking(planeBacking[activePlayer])
     ) then
         emu.stop(2)
     elseif not verifyBytes(
         captureWords(scalarAddresses),
-        captureBackingBytes(0x10C00, #scalarAddresses * 2)
+        captureBackingBytes(
+            scalarBacking[activePlayer],
+            #scalarAddresses * 2
+        )
     ) then
         emu.stop(8)
     elseif not verifyBytes(
         captureWords(inputAddresses),
-        captureWords(p3InputAddresses)
+        captureWords(inputBacking[activePlayer])
     ) then
         emu.stop(9)
     end
+    virtualBefore[activePlayer] = captureNativeP2()
 end, emu.callbackType.exec, 0x82A9C8)
 
 emu.addMemoryCallback(function()
     preHookEntries = preHookEntries + 1
-    if nativeBefore ~= nil and
-        emu.read(0x12000, emu.memType.snesWorkRam) == 0xA5 then
-        writeWord(0x1FE10, 0x0080)
-        writeWord(0x1FE12, 0x0080)
-        writeWord(0x1FE14, 0x0080)
-        writeWord(0x1FE16, 0x0000)
-        writeWord(0x1FE18, 0x0010)
+    if not armed or
+        emu.read(0x12000, emu.memType.snesWorkRam) ~= 0xA5 then
+        return
     end
+
+    for _, inputBase in ipairs({ 0x1FE10, 0x1FE20 }) do
+        writeWord(inputBase, 0x0080)
+        writeWord(inputBase + 2, 0x0080)
+        writeWord(inputBase + 4, 0x0080)
+        writeWord(inputBase + 6, 0x0000)
+        writeWord(inputBase + 8, 0x0010)
+    end
+
+    local nextPhase = (emu.read(0x12004, emu.memType.snesWorkRam) + 1) & 0x03
+    if nextPhase == 1 then
+        pendingPlayer = 3
+    elseif nextPhase == 3 then
+        pendingPlayer = 4
+    else
+        pendingPlayer = nil
+        return
+    end
+
+    nativeBefore = captureNativeP2()
+    scalarBefore = captureWords(scalarAddresses)
+    inputBefore = captureWords(inputAddresses)
 end, emu.callbackType.exec, 0xA08B00)
 
 emu.addMemoryCallback(function()
     postHookEntries = postHookEntries + 1
-    if nativeBefore ~= nil and
-        emu.read(0x12001, emu.memType.snesWorkRam) == 0x5A then
-        virtualAfter = captureNativeP2()
-        virtualScalarAfter = captureWords(scalarAddresses)
+    local activePlayer = emu.read(0x12001, emu.memType.snesWorkRam)
+    if armed and (activePlayer == 3 or activePlayer == 4) then
+        virtualAfter[activePlayer] = captureNativeP2()
+        virtualScalarAfter[activePlayer] = captureWords(scalarAddresses)
     end
 end, emu.callbackType.exec, 0xA08B80)
 
 emu.addMemoryCallback(function()
-    if nativeBefore == nil then
+    if not armed then
         return
     end
 
-    if dispatcherEntries ~= 1 then
-        print(string.format(
-            "pre=%d dispatcher=%d post=%d active=%d",
-            preHookEntries,
-            dispatcherEntries,
-            postHookEntries,
-            emu.read(0x12001, emu.memType.snesWorkRam)
-        ))
+    local completedPlayer = emu.read(0x12005, emu.memType.snesWorkRam)
+    if completedPlayer == 0 then
+        return
+    elseif completedPlayer ~= pendingPlayer then
+        emu.stop(16)
+    elseif dispatcherEntries[completedPlayer] ~=
+        completionCounts[completedPlayer] + 1 then
         emu.stop(3)
     elseif not verifyBytes(nativeBefore, captureNativeP2()) then
         emu.stop(4)
     elseif not verifyBytes(nativeBefore, captureBacking(0x10000)) then
         emu.stop(5)
-    elseif not verifyBytes(virtualAfter, captureBacking(0x10800)) then
+    elseif not verifyBytes(
+        virtualAfter[completedPlayer],
+        captureBacking(planeBacking[completedPlayer])
+    ) then
         emu.stop(6)
     elseif not verifyBytes(scalarBefore, captureWords(scalarAddresses)) then
         emu.stop(10)
@@ -198,37 +239,51 @@ emu.addMemoryCallback(function()
     ) then
         emu.stop(11)
     elseif not verifyBytes(
-        virtualScalarAfter,
-        captureBackingBytes(0x10C00, #scalarAddresses * 2)
+        virtualScalarAfter[completedPlayer],
+        captureBackingBytes(
+            scalarBacking[completedPlayer],
+            #scalarAddresses * 2
+        )
     ) then
         emu.stop(12)
     elseif not verifyBytes(inputBefore, captureWords(inputAddresses)) then
         emu.stop(13)
-    elseif verifyBytes(nativeBefore, virtualAfter) then
+    elseif verifyBytes(
+        virtualBefore[completedPlayer],
+        virtualAfter[completedPlayer]
+    ) then
         emu.stop(14)
-    else
+    end
+
+    boardChanged[completedPlayer] = true
+    completionCounts[completedPlayer] = completionCounts[completedPlayer] + 1
+    pendingPlayer = nil
+    if completionCounts[3] >= 2 and completionCounts[4] >= 2 and
+        boardChanged[3] and boardChanged[4] then
         emu.stop(0)
     end
-end, emu.callbackType.exec, 0xA08BBF)
+end, emu.callbackType.exec, 0xA08C00)
 
 emu.addEventCallback(function()
     frame = frame + 1
     setMenuInput()
 
     if frame == 4700 then
-        nativeBefore = captureNativeP2()
-        scalarBefore = captureWords(scalarAddresses)
-        inputBefore = captureWords(inputAddresses)
+        for offset = 0, 9 do
+            emu.write(0x12000 + offset, 0, emu.memType.snesWorkRam)
+        end
+        armed = true
         emu.write(0x12000, 0xA5, emu.memType.snesWorkRam)
     elseif frame >= 4780 then
         print(string.format(
-            "timeout pre=%d dispatcher=%d post=%d trigger=%d active=%d done=%d",
+            "timeout pre=%d post=%d p3=%d/%d p4=%d/%d phase=%d",
             preHookEntries,
-            dispatcherEntries,
             postHookEntries,
-            emu.read(0x12000, emu.memType.snesWorkRam),
-            emu.read(0x12001, emu.memType.snesWorkRam),
-            emu.read(0x12002, emu.memType.snesWorkRam)
+            dispatcherEntries[3],
+            completionCounts[3],
+            dispatcherEntries[4],
+            completionCounts[4],
+            emu.read(0x12004, emu.memType.snesWorkRam)
         ))
         emu.stop(7)
     end
