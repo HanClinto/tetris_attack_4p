@@ -189,6 +189,41 @@ local function verifyFrames()
     return true
 end
 
+local function statusWord(boardIndex)
+    local sourceBase = boardSources[boardIndex]
+    for column = 0, 5 do
+        local color = emu.read16(
+            sourceBase + column * 2,
+            emu.memType.snesWorkRam
+        ) & 0xFF
+        if color ~= 0 then
+            return 0x07F2
+        end
+    end
+    return 0x07F1
+end
+
+local function verifyStatuses()
+    local columns = { 3, 11, 19, 27 }
+    for boardIndex, column in ipairs(columns) do
+        local actual = emu.read16(
+            (0x7800 + 19 * 32 + column) * 2,
+            emu.memType.snesVideoRam
+        )
+        local expected = statusWord(boardIndex)
+        if actual ~= expected then
+            print(string.format(
+                "status board=%d expected=$%04X actual=$%04X",
+                boardIndex,
+                expected,
+                actual
+            ))
+            return false
+        end
+    end
+    return statusWord(3) == 0x07F2
+end
+
 emu.addEventCallback(function()
     frame = frame + 1
     setMenuInput()
@@ -197,6 +232,9 @@ emu.addEventCallback(function()
         emu.write(0x12000, 0xA5, emu.memType.snesWorkRam)
     elseif frame == 4708 then
         emu.write(0x12000, 0x00, emu.memType.snesWorkRam)
+    elseif frame == 4710 then
+        emu.write(0x10932, 1, emu.memType.snesWorkRam)
+        emu.write(0x10933, 0, emu.memType.snesWorkRam)
     elseif frame == 4720 then
         local state = emu.getState()
         if emu.read(0x01BA, emu.memType.snesWorkRam) ~= 0x02 or
@@ -229,6 +267,8 @@ emu.addEventCallback(function()
                 emu.stop(10)
             elseif not verifyFrames() then
                 emu.stop(11)
+            elseif not verifyStatuses() then
+                emu.stop(12)
             else
                 emu.stop(0)
             end

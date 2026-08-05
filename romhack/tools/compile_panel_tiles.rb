@@ -140,7 +140,32 @@ end
 binary << encode_4bpp(vertical_border)
 binary << encode_4bpp(horizontal_border)
 
-abort "compiled tile data must be 544 bytes" unless binary.bytesize == 544
+status_glyphs = {
+  safe: [
+    ["111", "101", "101", "101", "111"],
+    ["101", "110", "100", "110", "101"]
+  ],
+  danger: [
+    ["010", "010", "010", "000", "010"],
+    ["010", "010", "010", "000", "010"]
+  ]
+}.freeze
+
+status_glyphs.each do |status, glyph_pair|
+  pixels = Array.new(8) { Array.new(8, 0) }
+  color = status == :safe ? 5 : 2
+  glyph_pair.each_with_index do |glyph, glyph_index|
+    glyph.each_with_index do |row, row_index|
+      row.chars.each_with_index do |pixel, column_index|
+        pixels[row_index + 1][glyph_index * 4 + column_index] =
+          pixel == "1" ? color : 0
+      end
+    end
+  end
+  binary << encode_4bpp(pixels)
+end
+
+abort "compiled tile data must be 608 bytes" unless binary.bytesize == 608
 File.binwrite(output_path, binary)
 
 sheet = composite_sheet(images)

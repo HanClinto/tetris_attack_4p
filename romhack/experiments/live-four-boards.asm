@@ -56,6 +56,9 @@ RenderLiveFourBoards:
     lda #$00
 .storePhase:
     sta.l $7FFE3F
+    jsr RenderStatusPhase
+    sep #$20
+    lda.l $7FFE3F
     beq .rows0
     cmp #$01
     beq .rows1
@@ -188,7 +191,7 @@ UploadPanelTiles:
     lda.l PanelTiles,x
     sta.l $002119
     inx
-    cpx #$0220
+    cpx #$0260
     bne .loop
     rts
 
@@ -471,6 +474,88 @@ InitializeBoardFrameBatch:
 BorderColumns:
     dw $0000,$0007,$0008,$000F,$0010,$0017,$0018,$001F
 
+RenderStatusPhase:
+    cmp #$00
+    beq .p1
+    cmp #$01
+    beq .p2
+    cmp #$02
+    beq .p3
+    cmp #$03
+    bne .done
+    rep #$20
+    lda #$7A7B
+    sta.l $002116
+    jsr P4StatusWord
+    sta.l $002118
+    bra .done
+
+.p1:
+    rep #$20
+    lda #$7A63
+    sta.l $002116
+    jsr P1StatusWord
+    sta.l $002118
+    bra .done
+
+.p2:
+    rep #$20
+    lda #$7A6B
+    sta.l $002116
+    jsr P2StatusWord
+    sta.l $002118
+    bra .done
+
+.p3:
+    rep #$20
+    lda #$7A73
+    sta.l $002116
+    jsr P3StatusWord
+    sta.l $002118
+
+.done:
+    rep #$30
+    rts
+
+P1StatusWord:
+    ldx #$0FAE
+    bra StatusWordNative
+
+P2StatusWord:
+    ldx #$10AE
+StatusWordNative:
+    lda.l $7E0000,x
+    ora.l $7E0002,x
+    ora.l $7E0004,x
+    ora.l $7E0006,x
+    ora.l $7E0008,x
+    ora.l $7E000A,x
+    bra StatusWord
+
+P3StatusWord:
+    ldx #$0932
+    bra StatusWordBacking
+
+P4StatusWord:
+    ldx #$1132
+StatusWordBacking:
+    lda.l $7F0000,x
+    ora.l $7F0002,x
+    ora.l $7F0004,x
+    ora.l $7F0006,x
+    ora.l $7F0008,x
+    ora.l $7F000A,x
+
+StatusWord:
+    and #$00FF
+    beq .safe
+    lda #$07F2
+    rts
+
+.safe:
+    lda #$07F1
+    rts
+
 DrawP1Row:
     lda.l $7E0FAE,x
     jsr PanelWord
@@ -561,4 +646,4 @@ org $A09400
 PanelTiles:
     incbin "../build/panel-tiles.4bpp"
 
-assert pc() == $A09620
+assert pc() == $A09660
