@@ -10,6 +10,7 @@ four_wells_rom="$romhack_dir/build/static-four-wells.sfc"
 context_block_move_rom="$romhack_dir/build/context-block-move-probe.sfc"
 context_dispatch_rom="$romhack_dir/build/context-dispatch-probe.sfc"
 context_swap_rom="$romhack_dir/build/context-swap-probe.sfc"
+live_four_boards_rom="$romhack_dir/build/live-four-boards.sfc"
 source_rom="$romhack_dir/../resources/Tetris Attack (USA) (En,Ja).sfc"
 lua_test="$script_dir/multitap_detect.lua"
 
@@ -96,6 +97,11 @@ fi
     "$script_dir/context_dispatch_probe.lua" \
     "$context_dispatch_rom" \
     >"$romhack_dir/build/mesen-context-dispatch.log" 2>&1
+
+"$mesen_bin" $common_args --timeout=55 \
+    "$script_dir/live_four_boards.lua" \
+    "$live_four_boards_rom" \
+    >"$romhack_dir/build/mesen-live-four-boards.log" 2>&1
 
 "$mesen_bin" $common_args --timeout=45 \
     "$script_dir/context_backing_guard.lua" \

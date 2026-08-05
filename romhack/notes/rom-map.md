@@ -91,6 +91,8 @@ At tutorial frame 3600, the visible 16x16 panel metatiles are four 8x8 SNES 4bpp
 
 `tests/mesen/tilemap_dump.lua` captures VRAM and CGRAM. `tools/export_panel_tiles.rb` assembles the metatiles and produces palette-index JSON plus naive 8x8 PNG starters under `assets/panels/`.
 
+`tools/compile_panel_tiles.rb` reverses the editable `starter_8x8` JSON rows into six SNES 4bpp tiles: transparent tile `$3E0` and panels `$3E1-$3E5`. The live four-board experiment uploads the 192-byte result at VRAM word `$5E00` and renders two rows per NMI across six phases.
+
 Dynamic experiment state:
 
 - `$7F:FE30`: well 1 vertical offset

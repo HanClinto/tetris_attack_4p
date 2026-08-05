@@ -41,12 +41,16 @@ Visual milestones are captured from Mesen and checked in under `docs/progress/` 
 | Four-well Mode 2 layout | Complete | Four 6x12 placeholder fields fit across one 256-pixel screen |
 | Independent well scrolling | Complete | Each controller drives one Mode 2 vertical offset |
 | Virtual P3/P4 board execution | Complete | Original board logic alternates through persistent P3/P4 contexts |
-| Live four-board rendering | In progress | Replace placeholder fields with panel data from native and backing contexts |
+| Live four-board rendering | Prototype complete | Compact JSON-derived tiles render P1-P4 native/backing panel data |
 | Four-player menus and HUD | Not started | Capture menu/HUD iterations here once they become interactive |
 
 ![Four-well Mode 2 layout proof](docs/progress/four-well-layout.png)
 
 The current visual proof deliberately uses flat placeholder tiles. It validates geometry, independent scrolling, and VBlank timing before new panel art is introduced.
+
+![Live P1-P4 compact panel rendering](docs/progress/live-four-boards.png)
+
+The live renderer uploads the JSON-compiled 8x8 tiles and maps all 288 cells from P1/P2 native state plus P3/P4 backing contexts. It currently refreshes two rows per NMI, completing all four boards every six frames with reliable active-versus VBlank margin.
 
 The first compact panel-art export is also available as editable source material:
 
@@ -61,6 +65,8 @@ Regenerate the assets from a Mesen VRAM/CGRAM dump with:
 ```sh
 ruby tools/export_panel_tiles.rb /path/to/vram.bin /path/to/cgram.bin assets/panels
 ```
+
+For hand editing, treat `assets/panels/panels.json` as the source of truth and run `make panel-assets`. The 8x8 PNGs are regenerated previews; see [`assets/panels/README.md`](assets/panels/README.md).
 
 ### Panel scale
 
