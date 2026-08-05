@@ -1,13 +1,19 @@
 incsrc "../patch.asm"
 
+org $829D93
+    jsl P1DispatchPreHook
+
+org $829DB8
+    jsl P1DispatchPostHook
+
 org $829E49
-    jsl ContextDispatchPreHook
+    jsl P2DispatchPreHook
 
 org $829E6E
-    jsl ContextDispatchPostHook
+    jsl P2DispatchPostHook
 
 org $A08B00
-ContextDispatchPreHook:
+P1DispatchPreHook:
     jsl $86D343
     php
     rep #$30
@@ -21,21 +27,9 @@ ContextDispatchPreHook:
     cmp #$A5
     bne .done
     lda.l $7F2004
-    inc
-    and #$03
+    eor #$01
     sta.l $7F2004
-    cmp #$01
-    beq .p3
-    cmp #$03
-    bne .done
-
-    lda #$04
-    sta.l $7F2001
-    rep #$30
-    jsr BeginVirtualP4
-    bra .done
-
-.p3:
+    beq .done
     lda #$03
     sta.l $7F2001
     rep #$30
@@ -51,7 +45,7 @@ ContextDispatchPreHook:
     rtl
 
 org $A08B80
-ContextDispatchPostHook:
+P1DispatchPostHook:
     php
     rep #$30
     pha
@@ -64,44 +58,25 @@ ContextDispatchPostHook:
     sta.l $7F2005
     lda.l $7F2001
     cmp #$03
-    beq .p3
-    cmp #$04
     bne .done
-
-.p4:
     rep #$30
-    ldx #$0100
-    ldy #$1000
-    jsr SaveNativeSlotBlockMove
-    ldx #$0800
-    jsr SaveP2ScalarState
-    sep #$20
-    lda #$04
-    sta.l $7F2005
-    inc.w $2007
-    bra .restore
-
-.p3:
-    rep #$30
-    ldx #$0100
+    ldx #$0000
     ldy #$0800
     jsr SaveNativeSlotBlockMove
     ldx #$0000
-    jsr SaveP2ScalarState
-    sep #$20
-    lda #$03
-    sta.l $7F2005
-    inc.w $2006
-
-.restore:
-    rep #$30
-    jsr RestoreP2ScalarState
-    jsr RestoreP2InputState
+    jsl SaveP1ScalarState
+    jsl RestoreP1ScalarState
+    jsl RestoreP1InputState
     ldx #$0000
-    ldy #$0100
+    ldy #$0000
     jsr LoadNativeSlotBlockMove
 
     sep #$20
+    lda #$03
+    sta.l $7F2005
+    lda.l $7F2006
+    inc
+    sta.l $7F2006
     lda #$00
     sta.l $7F2001
     lda.l $7F2002
@@ -109,12 +84,99 @@ ContextDispatchPostHook:
     sta.l $7F2002
 
 .done:
-    jml ContextDispatchPostComplete
+    jml P1DispatchPostComplete
 
-assert pc() <= $A08C00
+assert pc() <= $A08BF0
+
+org $A08BF0
+P1DispatchPostComplete:
+    rep #$30
+    plb
+    ply
+    plx
+    pla
+    plp
+    jsl $85B9C1
+    rtl
 
 org $A08C00
-ContextDispatchPostComplete:
+P2DispatchPreHook:
+    jsl $86D343
+    php
+    rep #$30
+    pha
+    phx
+    phy
+    phb
+
+    sep #$20
+    lda.l $7F2000
+    cmp #$A5
+    bne .done
+    lda.l $7F200A
+    eor #$01
+    sta.l $7F200A
+    beq .done
+    lda #$04
+    sta.l $7F2001
+    rep #$30
+    jsr BeginVirtualP4
+
+.done:
+    rep #$30
+    plb
+    ply
+    plx
+    pla
+    plp
+    rtl
+
+org $A08C80
+P2DispatchPostHook:
+    php
+    rep #$30
+    pha
+    phx
+    phy
+    phb
+
+    sep #$20
+    lda #$00
+    sta.l $7F2005
+    lda.l $7F2001
+    cmp #$04
+    bne .done
+    rep #$30
+    ldx #$0100
+    ldy #$1000
+    jsr SaveNativeSlotBlockMove
+    ldx #$0800
+    jsr SaveP2ScalarState
+    jsr RestoreP2ScalarState
+    jsr RestoreP2InputState
+    ldx #$0400
+    ldy #$0100
+    jsr LoadNativeSlotBlockMove
+
+    sep #$20
+    lda #$04
+    sta.l $7F2005
+    lda.l $7F2007
+    inc
+    sta.l $7F2007
+    lda #$00
+    sta.l $7F2001
+    lda.l $7F2002
+    inc
+    sta.l $7F2002
+
+.done:
+    jml P2DispatchPostComplete
+
+assert pc() <= $A08CF0
+
+org $A08CF0
+P2DispatchPostComplete:
     rep #$30
     plb
     ply
@@ -326,12 +388,12 @@ RestoreP2InputState:
 
 org $A09000
 BeginVirtualP3:
-    ldx #$0100
+    ldx #$0000
     ldy #$0000
     jsr SaveNativeSlotBlockMove
-    ldx #$0100
-    jsr SaveP2ScalarState
-    jsr SaveP2InputState
+    ldx #$0180
+    jsl SaveP1ScalarState
+    jsl SaveP1InputState
 
     sep #$20
     lda.l $7F2008
@@ -339,29 +401,29 @@ BeginVirtualP3:
     inc
     sta.l $7F2008
     rep #$30
-    ldx #$0100
+    ldx #$0000
     ldy #$0800
     jsr SaveNativeSlotBlockMove
     ldx #$0000
-    jsr SaveP2ScalarState
+    jsl SaveP1ScalarState
     bra .input
 
 .load:
     rep #$30
     ldx #$0800
-    ldy #$0100
+    ldy #$0000
     jsr LoadNativeSlotBlockMove
     ldx #$0000
-    jsr LoadP2ScalarState
+    jsl LoadP1ScalarState
 
 .input:
     ldx #$FE10
-    jsr LoadVirtualInputState
+    jsl LoadVirtualInputP1
     rts
 
 BeginVirtualP4:
     ldx #$0100
-    ldy #$0000
+    ldy #$0400
     jsr SaveNativeSlotBlockMove
     ldx #$0100
     jsr SaveP2ScalarState
@@ -393,5 +455,148 @@ BeginVirtualP4:
     jsr LoadVirtualInputState
     rts
 
-assert ContextDispatchPostComplete == $A08C00
+assert P1DispatchPostComplete == $A08BF0
+assert P2DispatchPostComplete == $A08CF0
 assert pc() <= $A09200
+
+org $A18000
+SaveP1ScalarState:
+    lda.l $7E03A4
+    sta.l $7F0C26,x
+    lda.l $7E03A8
+    sta.l $7F0C28,x
+    lda.l $7E03AC
+    sta.l $7F0C2A,x
+    lda.l $7E03B0
+    sta.l $7F0C2C,x
+    lda.l $7E03EE
+    sta.l $7F0C00,x
+    lda.l $7E0400
+    sta.l $7F0C02,x
+    lda.l $7E0424
+    sta.l $7F0C04,x
+    lda.l $7E0428
+    sta.l $7F0C06,x
+    lda.l $7E042C
+    sta.l $7F0C08,x
+    lda.l $7E0440
+    sta.l $7F0C0A,x
+    lda.l $7E0444
+    sta.l $7F0C0C,x
+    lda.l $7E0448
+    sta.l $7F0C0E,x
+    lda.l $7E044C
+    sta.l $7F0C10,x
+    lda.l $7E0450
+    sta.l $7F0C12,x
+    lda.l $7E0454
+    sta.l $7F0C14,x
+    lda.l $7E0458
+    sta.l $7F0C16,x
+    lda.l $7E045C
+    sta.l $7F0C18,x
+    lda.l $7E046C
+    sta.l $7F0C1A,x
+    lda.l $7E0470
+    sta.l $7F0C1C,x
+    lda.l $7E04BE
+    sta.l $7F0C1E,x
+    lda.l $7E04E8
+    sta.l $7F0C20,x
+    lda.l $7E04F4
+    sta.l $7F0C22,x
+    lda.l $7E04F8
+    sta.l $7F0C24,x
+    rtl
+
+RestoreP1ScalarState:
+    ldx #$0180
+LoadP1ScalarState:
+    lda.l $7F0C26,x
+    sta.l $7E03A4
+    lda.l $7F0C28,x
+    sta.l $7E03A8
+    lda.l $7F0C2A,x
+    sta.l $7E03AC
+    lda.l $7F0C2C,x
+    sta.l $7E03B0
+    lda.l $7F0C00,x
+    sta.l $7E03EE
+    lda.l $7F0C02,x
+    sta.l $7E0400
+    lda.l $7F0C04,x
+    sta.l $7E0424
+    lda.l $7F0C06,x
+    sta.l $7E0428
+    lda.l $7F0C08,x
+    sta.l $7E042C
+    lda.l $7F0C0A,x
+    sta.l $7E0440
+    lda.l $7F0C0C,x
+    sta.l $7E0444
+    lda.l $7F0C0E,x
+    sta.l $7E0448
+    lda.l $7F0C10,x
+    sta.l $7E044C
+    lda.l $7F0C12,x
+    sta.l $7E0450
+    lda.l $7F0C14,x
+    sta.l $7E0454
+    lda.l $7F0C16,x
+    sta.l $7E0458
+    lda.l $7F0C18,x
+    sta.l $7E045C
+    lda.l $7F0C1A,x
+    sta.l $7E046C
+    lda.l $7F0C1C,x
+    sta.l $7E0470
+    lda.l $7F0C1E,x
+    sta.l $7E04BE
+    lda.l $7F0C20,x
+    sta.l $7E04E8
+    lda.l $7F0C22,x
+    sta.l $7E04F4
+    lda.l $7F0C24,x
+    sta.l $7E04F8
+    rtl
+
+SaveP1InputState:
+    lda.l $7E00B3
+    sta.l $7F0D50
+    lda.l $7E00B7
+    sta.l $7F0D52
+    lda.l $7E00BB
+    sta.l $7F0D54
+    lda.l $7E00BF
+    sta.l $7F0D56
+    lda.l $7E00C5
+    sta.l $7F0D58
+    rtl
+
+LoadVirtualInputP1:
+    lda.l $7F0000,x
+    sta.l $7E00B3
+    lda.l $7F0002,x
+    sta.l $7E00B7
+    lda.l $7F0004,x
+    sta.l $7E00BB
+    lda.l $7F0006,x
+    sta.l $7E00BF
+    lda.l $7F0008,x
+    sta.l $7E00C5
+    rtl
+
+RestoreP1InputState:
+    lda.l $7F0D50
+    sta.l $7E00B3
+    lda.l $7F0D52
+    sta.l $7E00B7
+    lda.l $7F0D54
+    sta.l $7E00BB
+    lda.l $7F0D56
+    sta.l $7E00BF
+    lda.l $7F0D58
+    sta.l $7E00C5
+    rtl
+
+assert pc() <= $A18400

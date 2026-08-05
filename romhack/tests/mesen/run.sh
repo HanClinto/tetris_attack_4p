@@ -94,7 +94,7 @@ fi
     >"$romhack_dir/build/mesen-context-block-move-timing.log" 2>&1
 
 "$mesen_bin" $common_args --timeout=55 \
-    "$script_dir/context_dispatch_probe.lua" \
+    "$script_dir/balanced_context_dispatch_probe.lua" \
     "$context_dispatch_rom" \
     >"$romhack_dir/build/mesen-context-dispatch.log" 2>&1
 

@@ -123,8 +123,13 @@ The active versus loop calls `$82:A9C8` once per native player:
 
 Instruction-level tracing reduced non-plane dispatcher state to 19 native player word pairs across `$03EE-$04FA`. Four cursor words extend the persisted scalar sidecar to 23 words: logical column/row `$03A6/$03AA` and mirrored presentation coordinates `$03AE/$03B2`. It also maps the native P2 input words at `$00B5`, `$00B9`, `$00BD`, `$00C7`, and `$00CD` to P3's processed input structure at `$7F:FE10-$7F:FE18`.
 
-The scheduler now uses four phases: native P2, virtual P3, native P2, virtual P4. P3 planes/scalars use `$7F:0800/$0C00`; P4 uses `$7F:1000/$1400`. The active-match ownership guard covers the complete `$7F:0000-$14FF` allocation.
+The balanced scheduler virtualizes both native slots independently:
+
+- Slot 1 alternates native P1 and virtual P3.
+- Slot 2 alternates native P2 and virtual P4.
+
+P3 planes/scalars use `$7F:0800/$0C00`; P4 uses `$7F:1000/$1400`. Native P1/P2 plane backups use `$7F:0000/$0400`, with separate scalar and input backups in `$7F:0D00-$0D7F`. The active-match ownership guard covers the complete `$7F:0000-$14FF` allocation.
 
 The strengthened test injects A presses for both extra players and verifies two independent updates apiece. During each virtual phase, native slot 2 contains the selected player's planes, scalar sidecar, and processed input. The original update slice changes that virtual board, saves it back to the correct P3/P4 context, and restores every captured P2 plane, scalar, and input byte. This establishes repeated P3/P4 board execution through the native engine.
 
-The experimental schedule gives P2 half the native update rate and P3/P4 one quarter each. A production scheduler may need to use both native slots, reduce the copied state further, or budget extra updates outside the current slice. Rendering the virtual contexts also remains separate integration work.
+All four players now receive one board update every two native match ticks. `balanced_context_dispatch_probe.lua` verifies both dispatcher return paths, equal virtual completion counts, intervening native updates, independent save-back, and byte-exact restoration of each native slot.

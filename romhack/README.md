@@ -40,7 +40,7 @@ Visual milestones are captured from Mesen and checked in under `docs/progress/` 
 | Four-controller input | Complete | Four independent Multitap words plus processed P3/P4 input state |
 | Four-well Mode 2 layout | Complete | Four 6x12 placeholder fields fit across one 256-pixel screen |
 | Independent well scrolling | Complete | Each controller drives one Mode 2 vertical offset |
-| Virtual P3/P4 board execution | Complete | Original board logic alternates through persistent P3/P4 contexts |
+| Balanced P1-P4 board execution | Complete | P1/P3 and P2/P4 alternate through both native slots at equal half-rate |
 | Live four-board rendering | Prototype complete | Compact JSON-derived tiles render P1-P4 native/backing panel data |
 | Player frames, cursors, and labels | Prototype complete | Thin four-well borders, independent two-cell outlines, and P1-P4 labels |
 | Four-player menus and HUD | Not started | Capture menu/HUD iterations here once they become interactive |

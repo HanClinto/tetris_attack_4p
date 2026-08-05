@@ -41,6 +41,9 @@ RenderLiveFourBoards:
 
 .initialized:
     sep #$20
+    lda #$78
+    sta.l $7E01BD
+    sta.l $002108
     lda #$80
     sta.l $002115
 

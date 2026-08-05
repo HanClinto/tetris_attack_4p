@@ -95,6 +95,8 @@ At tutorial frame 3600, the visible 16x16 panel metatiles are four 8x8 SNES 4bpp
 
 Board frames occupy horizontal rows 5 and 18 plus vertical columns 0/7, 8/15, 16/23, and 24/31. A 20-phase initializer writes eight frame words per NMI, avoiding a large one-frame VBlank spike.
 
+Balanced slot scheduling can let the original versus scene move BG2SC to `$7C00`. The live four-board experiment explicitly pins the `$7E:01BD` shadow and `$2108` hardware register to `$78`, keeping BG2 at VRAM word `$7800`.
+
 Native cursor coordinates are paired words:
 
 - P1 logical column/row: `$7E:03A4/$03A8`

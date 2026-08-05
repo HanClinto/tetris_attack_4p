@@ -206,6 +206,13 @@ emu.addEventCallback(function()
             state["ppu.layers[1].chrAddress"] ~= 0x2000 or
             state["ppu.layers[1].hscroll"] ~= 0 or
             state["ppu.layers[1].vscroll"] ~= 0 then
+            print(string.format(
+                "bg2 map=$%04X chr=$%04X scroll=%d,%d",
+                state["ppu.layers[1].tilemapAddress"] or 0,
+                state["ppu.layers[1].chrAddress"] or 0,
+                state["ppu.layers[1].hscroll"] or 0,
+                state["ppu.layers[1].vscroll"] or 0
+            ))
             emu.stop(8)
         elseif not verifyTileUpload() then
             emu.stop(3)
